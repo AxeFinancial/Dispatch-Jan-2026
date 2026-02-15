@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Tailor • January 2026 Financial Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1f1f1f;
+            --accent-gold: #F5C518;
+            --accent-gold-dim: #C9A227;
+            --accent-green: #10b981;
+            --accent-blue: #F5C518; /* unused - kept for compatibility */
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-pink: #ec4899;
+            --text-primary: #f1f5f9;
+            --text-secondary: #a0a0a0;
+            --text-muted: #64748b;
+            --border: #2d2d2d;
+            --red: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.95);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dim) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-tab {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        .nav-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(245, 197, 24, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #f1f5f9 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.75rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gold);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(245, 197, 24, 0.25);
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-card:nth-child(1)::before { background: var(--accent-orange); }
+        .metric-card:nth-child(2)::before { background: var(--accent-gold); }
+        .metric-card:nth-child(3)::before { background: var(--accent-green); }
+        .metric-card:nth-child(4)::before { background: var(--red); }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .metric-value.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-value.negative {
+            color: var(--red);
+        }
+
+        .metric-change {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-change.warning {
+            color: var(--accent-orange);
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border-left: 4px solid var(--accent-orange);
+            padding: 1.75rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .highlight-box h3 {
+            color: var(--accent-orange);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .highlight-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .highlight-box li {
+            padding-left: 1.75rem;
+            position: relative;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .highlight-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 2rem;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .insight-card {
+            background: rgba(26, 26, 26, 0.5);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .insight-card:hover {
+            border-color: var(--accent-gold);
+            background: rgba(26, 26, 26, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(245, 197, 24, 0.2);
+        }
+
+        .insight-card h4 {
+            color: var(--accent-gold);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .insight-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 197, 24, 0.2);
+            background: rgba(26, 26, 26, 0.8);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        th {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 1rem 0.875rem;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--accent-gold);
+            white-space: nowrap;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        th:first-child {
+            text-align: left;
+        }
+
+        td {
+            padding: 0.875rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        td.negative {
+            color: var(--red) !important;
+            font-weight: 500;
+        }
+
+        td.positive {
+            color: var(--accent-green) !important;
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background: rgba(26, 26, 26, 0.5);
+        }
+
+        .total-row {
+            font-weight: 700;
+            background: rgba(245, 197, 24, 0.15);
+            border-top: 2px solid var(--border);
+        }
+
+        .total-row td {
+            color: var(--text-primary);
+            font-weight: 700;
+            padding: 1rem 0.875rem;
+        }
+
+        .indent {
+            padding-left: 2rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-left: 0.5rem;
+        }
+
+        .badge.startup {
+            background: rgba(245, 197, 24, 0.2);
+            color: var(--accent-gold);
+        }
+
+        @media (max-width: 1024px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .nav-tabs {
+                justify-content: center;
+            }
+            
+            .insight-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem;
+            }
+
+            .hero h2 {
+                font-size: 1.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .nav {
+                padding: 0.75rem 1rem;
+            }
+            
+            .nav h1 {
+                font-size: 1.1rem;
+            }
+
+            .nav-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                justify-content: center;
+            }
+            
+            .nav-tab {
+                font-size: 0.8rem;
+                padding: 0.4rem 0;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            
+            .metric-card {
+                padding: 1rem;
+            }
+            
+            .metric-value {
+                font-size: 1.5rem;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+            
+            .section-header {
+                font-size: 1.1rem;
+            }
+            
+            .highlight-box {
+                padding: 1.25rem;
+            }
+            
+            .highlight-box ul {
+                padding-left: 1rem;
+            }
+            
+            .highlight-box li {
+                font-size: 0.9rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            /* Journey Timeline - horizontal scroll on tablet */
+            .timeline-container {
+                overflow-x: auto;
+                padding-bottom: 1rem;
+            }
+            
+            .timeline-container > div {
+                min-width: 160px;
+            }
+            
+            .timeline-line {
+                display: none;
+            }
+            
+            /* Tables - horizontal scroll */
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.4rem;
+                min-width: 60px;
+            }
+            
+            /* Scenario Builder - stack on mobile */
+            .section > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Key Numbers grid */
+            .section > div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            footer {
+                padding: 1.5rem 1rem;
+            }
+            
+            footer p {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero h2 {
+                font-size: 1.25rem;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-value {
+                font-size: 1.75rem;
+            }
+            
+            .nav-tabs {
+                gap: 0.5rem;
+            }
+            
+            .nav-tab {
+                font-size: 0.75rem;
+            }
+            
+            /* Journey Timeline - stack vertically on phones */
+            .timeline-container {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+                overflow-x: visible;
+            }
+            
+            .timeline-container > div {
+                min-width: unset;
+            }
+            
+            /* Key Numbers - single column on small phones */
+            .section > div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            /* Balance sheet grid - stack */
+            .section > div[style*="grid-template-columns: 1fr 1fr; gap: 2rem"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-content">
+            <h1>Dispatch Tailor • January 2026</h1>
+            <div class="nav-tabs">
+                <a class="nav-tab active" data-section="overview">Overview</a>
+                <a class="nav-tab" data-section="financials">Financials</a>
+                <a class="nav-tab" data-section="forecast">2026 Forecast</a>
+                <a class="nav-tab" data-section="insights">Insights</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <div class="content-section active" id="overview">
+            <div class="hero">
+                <div class="hero-content">
+                    <h2>January 2026 Financial Package <span class="badge startup">Early Stage</span></h2>
+                    <p class="hero-subtitle">Total Revenue: $5,000 | Shareholder contributed: $138K | Building foundation</p>
+                    
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Jan 2026 Revenue</div>
+                            <div class="metric-value positive">$1.7K</div>
+                            <div class="metric-change">$5K total to date</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-label">Total Cash</div>
+                            <div class="metric-value positive">$9.7K</div>
+                            <div class="metric-change">Jan 31, 2026</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-label">Gross Margin</div>
+                            <div class="metric-value">35%</div>
+                            <div class="metric-change">Dispatcher & tech model</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-label">Net Loss (Jan 2026)</div>
+                            <div class="metric-value negative">($32.1K)</div>
+                            <div class="metric-change warning">Startup investment phase</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h3><span>🚀</span> Early-Stage Startup Context</h3>
+                <ul>
+                    <li><strong>Three Months of Revenue:</strong> $5,000 total revenue (Nov 2025 - Jan 2026) at $1,667/month run rate from client engagements</li>
+                    <li><strong>Development Phase:</strong> Total investment of $129.5K in operations with R&D ($41.2K) and G&A ($88.2K) to build product/service</li>
+                    <li><strong>Shareholder Contributed:</strong> $137,986 in shareholder contributions funding operations through startup phase</li>
+                    <li><strong>January Burn Reduced:</strong> $32.5K (vs $69.3K in December) primarily due to lower R&D contractor costs; accounting fees dropping to $2.7K/month from February post-onboarding</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📊</span> Executive Summary</h2>
+                <p style="line-height: 1.8; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Dispatch Tailor is an early-stage startup that has generated <strong style="color: var(--accent-green);">$5,000 in revenue across November 2025 - January 2026</strong>. The business operates with a contractor-based service delivery model targeting a 35% gross margin on client work. January 2026 marked the transition to W-2 payroll alongside contractor operations.
+                </p>
+                <p style="line-height: 1.8; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Total investment of <strong style="color: var(--text-primary);">$129,479</strong> in operations, with G&A ($88,186) and R&D ($41,188) as primary cost centers. January saw $32.5K in expenses including contractors, legal ($3.5K), accounting ($4.65K), and new payroll costs. The business is funded by <strong style="color: var(--accent-gold);">$137,986 in shareholder contributions</strong> and maintains $9,742 in cash plus $5,000 in accrued revenue as of January 31, 2026.
+                </p>
+                <p id="lookingAheadText" style="line-height: 1.8; color: var(--text-secondary); border-left: 3px solid var(--accent-gold); padding-left: 1rem; margin-top: 1.5rem;">
+                    <strong style="color: var(--accent-gold);">Looking Ahead:</strong> 2025 was about building—the platform, the team, the first client relationship. <strong>2026 is the pivot year.</strong> With a second client signed in February, we're validating product-market fit. The plan: stabilize operating costs, focus on client acquisition, and scale to <span id="lookingAheadClients">5</span> clients by year-end. December target: <span id="lookingAheadLoss">$12K</span> monthly loss. See the <strong>2026 Forecast</strong> tab to explore scenarios.
+                </p>
+            </div>
+
+            <!-- Visual Journey Timeline -->
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🗺️</span> The Journey So Far</h2>
+                <div style="position: relative; padding: 2rem 0;">
+                    <!-- Timeline line -->
+                    <div class="timeline-line" style="position: absolute; top: 50%; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #ef4444 0%, #F5C518 50%, #10b981 100%); border-radius: 2px;"></div>
+                    
+                    <!-- Timeline points -->
+                    <div class="timeline-container" style="display: flex; justify-content: space-between; position: relative; gap: 1rem;">
+                        <!-- Q2-Q3 2025 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">🔧</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid #2d2d2d;">
+                                <div style="color: #ef4444; font-weight: 600; font-size: 0.85rem;">Q2-Q3 2025</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">Build Phase</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">Platform development<br>$41K R&D investment<br>Team assembly</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nov 2025 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #F5C518, #eab308); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(245, 197, 24, 0.4);">🎯</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid var(--accent-gold);">
+                                <div style="color: var(--accent-gold); font-weight: 600; font-size: 0.85rem;">NOV 2025</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">First Revenue</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">Client #1 signed<br>$1,667/month<br>Product-market signal</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Feb 2026 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">✅</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid #10b981;">
+                                <div style="color: #10b981; font-weight: 600; font-size: 0.85rem;">FEB 2026</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">Validation</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">Client #2 signed<br>$1,800/month<br>Model repeatable</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dec 2026 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">🚀</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid #3b82f6;">
+                                <div style="color: #3b82f6; font-weight: 600; font-size: 0.85rem;">DEC 2026 (Target)</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">Scale</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;"><span id="journeyClients">5</span> clients<br><span id="journeyRevenue">$8.9K</span>/month revenue<br><span id="journeyLoss">$12K/month loss</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Numbers at a Glance -->
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🎯</span> The Numbers That Matter</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <div id="keyRevenue" style="font-size: 2.5rem; font-weight: 700; color: #10b981;">$1,800</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Revenue per Client</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">Monthly recurring</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(245, 197, 24, 0.15), rgba(245, 197, 24, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(245, 197, 24, 0.3);">
+                        <div id="keyMargin" style="font-size: 2.5rem; font-weight: 700; color: #F5C518;">35%</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Gross Margin</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">After dispatcher & tech costs</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div id="keyBreakeven" style="font-size: 2.5rem; font-weight: 700; color: #ef4444;">24</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Clients to Breakeven</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">At current unit economics</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(139, 92, 246, 0.3);">
+                        <div id="keyGrossProfit" style="font-size: 2.5rem; font-weight: 700; color: #8b5cf6;">$630</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Gross Profit per Client</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">Monthly contribution</div>
+                    </div>
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem; opacity: 0.7;">
+                    💡 These numbers update when you adjust the <strong>Scenario Builder</strong> in the 2026 Forecast tab
+                </p>
+            </div>
+
+            <div class="chart-grid">
+                <div class="section">
+                    <h2 class="section-header">Monthly Expenses Trend</h2>
+                    <div class="chart-container">
+                        <canvas id="expenseTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-header">Expense Breakdown (YTD)</h2>
+                    <div class="chart-container">
+                        <canvas id="expenseBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financials Section -->
+        <div class="content-section" id="financials">
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📈</span> Profit & Loss Statement</h2>
+                <div style="overflow-x: auto;">
+                <table style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 180px;">Account</th>
+                            <th>Jun 25</th>
+                            <th>Jul 25</th>
+                            <th>Aug 25</th>
+                            <th>Sep 25</th>
+                            <th>Oct 25</th>
+                            <th>Nov 25</th>
+                            <th>Dec 25</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">2025</th>
+                            <th>Jan 26</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">2026</th>
+                            <th style="background: rgba(245, 197, 24, 0.25);">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>REVENUE</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Service Revenue</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$3,333</strong></td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$5,000</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total Revenue</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="positive"><strong>$1,667</strong></td>
+                            <td class="positive"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$3,333</strong></td>
+                            <td class="positive"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$5,000</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>COST OF GOODS SOLD</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">COGS - Dispatcher & Tech</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($1,250)</td>
+                            <td class="negative">($1,250)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($2,500)</strong></td>
+                            <td class="negative">($1,250)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,250)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($3,750)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Gross Profit</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="positive"><strong>$417</strong></td>
+                            <td class="positive"><strong>$417</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$833</strong></td>
+                            <td class="positive"><strong>$417</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$417</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$1,250</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>OPERATING EXPENSES</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Contractors - G&A</td>
+                            <td>—</td>
+                            <td class="negative">($3,420)</td>
+                            <td>—</td>
+                            <td class="negative">($3,420)</td>
+                            <td class="negative">($4,108)</td>
+                            <td class="negative">($5,647)</td>
+                            <td class="negative">($22,271)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($38,866)</strong></td>
+                            <td class="negative">($17,298)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($17,298)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($56,164)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Contractors - R&D</td>
+                            <td>—</td>
+                            <td class="negative">($3,000)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($7,275)</td>
+                            <td class="negative">($5,803)</td>
+                            <td class="negative">($31,060)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($47,138)</strong></td>
+                            <td class="negative">($4,325)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($4,325)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($51,463)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Legal & Professional</td>
+                            <td class="negative">($359)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($11,065)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($11,424)</strong></td>
+                            <td class="negative">($3,500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,500)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($14,924)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Accounting Services</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($4,050)</td>
+                            <td class="negative">($4,075)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($8,125)</strong></td>
+                            <td class="negative">($4,650)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($4,650)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($12,775)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Salary & Wages</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"><strong>—</strong></td>
+                            <td class="negative">($1,422)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,422)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($1,422)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Other (Ins, Ads, SW, Fees)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($195)</td>
+                            <td class="negative">($161)</td>
+                            <td class="negative">($815)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,171)</strong></td>
+                            <td class="negative">($1,341)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,341)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($2,512)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total Operating Expenses</strong></td>
+                            <td class="negative"><strong>($359)</strong></td>
+                            <td class="negative"><strong>($6,420)</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="negative"><strong>($3,420)</strong></td>
+                            <td class="negative"><strong>($11,578)</strong></td>
+                            <td class="negative"><strong>($15,661)</strong></td>
+                            <td class="negative"><strong>($69,286)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($106,724)</strong></td>
+                            <td class="negative"><strong>($32,536)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($32,536)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($139,260)</strong></td>
+                        </tr>
+                        <tr class="total-row" style="background: rgba(239, 68, 68, 0.1);">
+                            <td><strong>NET INCOME</strong></td>
+                            <td class="negative"><strong>($359)</strong></td>
+                            <td class="negative"><strong>($6,420)</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="negative"><strong>($3,420)</strong></td>
+                            <td class="negative"><strong>($11,578)</strong></td>
+                            <td class="negative"><strong>($15,244)</strong></td>
+                            <td class="negative"><strong>($68,869)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($105,891)</strong></td>
+                            <td class="negative"><strong>($32,119)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($32,119)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($138,010)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">💼</span> Balance Sheet (January 31, 2026)</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-size: 1.125rem;">Assets</h3>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Current Assets</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Checking Account</td>
+                                    <td class="positive">$9,742</td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Accrued Revenue</td>
+                                    <td class="positive">$5,000</td>
+                                </tr>
+                                <tr class="total-row" style="background: rgba(16, 185, 129, 0.15);">
+                                    <td><strong>TOTAL ASSETS</strong></td>
+                                    <td class="positive"><strong>$14,742</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.125rem;">Liabilities & Equity</h3>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Liabilities</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Accounts Payable</td>
+                                    <td class="negative">$5,344</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td><strong>Total Liabilities</strong></td>
+                                    <td class="negative"><strong>$5,344</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Shareholders' Equity</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Shareholders Contribution</td>
+                                    <td class="positive">$137,986</td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Retained Earnings</td>
+                                    <td class="negative">($96,469)</td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Net Income (Jan 2026)</td>
+                                    <td class="negative">($32,119)</td>
+                                </tr>
+                                <tr class="total-row" style="background: rgba(16, 185, 129, 0.15);">
+                                    <td><strong>Total Equity</strong></td>
+                                    <td class="positive"><strong>$9,398</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2026 Forecast Section -->
+        <div class="content-section" id="forecast">
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🔮</span> 2026 Financial Forecast</h2>
+                <div style="background: linear-gradient(135deg, rgba(245, 197, 24, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid var(--accent-gold);">
+                    <h3 style="color: var(--accent-gold); margin-bottom: 1rem;">The Path Forward: From Build to Scale</h3>
+                    <p style="line-height: 1.8; margin-bottom: 1rem;">2025 was about building the foundation—developing the dispatch platform, proving the model with our first client, and assembling the team. We invested heavily in R&D contractors to build technology that differentiates us in the market.</p>
+                    <p style="line-height: 1.8; margin-bottom: 1rem;"><strong>2026 is the pivot year.</strong> With our second client signed in February, we're validating product-market fit. The plan: stabilize R&D spending as the platform matures, shift focus to client acquisition, and scale the client base by year-end. Each new client at $1,800/month with 35% gross margins gets us closer to sustainability.</p>
+                    <p style="line-height: 1.8;"><strong>The math is simple:</strong> As we add clients and stabilize operating costs, monthly losses decrease. The question isn't if—it's how fast we can acquire clients while managing cash runway.</p>
+                </div>
+                <div class="insight-grid" style="margin-bottom: 2rem;">
+                    <div class="insight-card">
+                        <h4>Forecast Assumptions</h4>
+                        <p><strong>Revenue:</strong> New client signed Feb ($1.1K prorated, then $1.8K/month). 3 additional clients (May, Aug, Oct).</p>
+                        <p><strong>COGS:</strong> Dispatcher & tech costs at 65% of revenue (35% gross margin).</p>
+                        <p><strong>R&D:</strong> Wind down from $15K to $5K/month by May as platform matures.</p>
+                        <p><strong>Software:</strong> Scales with clients (~$200/client + $300 base).</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Key Projections</h4>
+                        <p><strong>2026 Revenue:</strong> <span class="positive">$67,904</span></p>
+                        <p><strong>2026 Gross Profit:</strong> <span class="positive">$23,773</span> (35% margin)</p>
+                        <p><strong>2026 Net Loss:</strong> <span class="negative">($172,577)</span></p>
+                        <p><strong>Dec Exit Rate:</strong> $8.9K rev / $10.8K loss</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📊</span> Monthly Forecast</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: rgba(245, 197, 24, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-gold);">
+                    📌 <strong>Base Case:</strong> 5 clients by Dec, 35% margin, $15K stable OpEx. Use the <strong>Scenario Builder</strong> below to explore alternatives.
+                </p>
+                <div style="overflow-x: auto;">
+                <table style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 140px;">Account</th>
+                            <th>Jan</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Apr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">H1</th>
+                            <th>Jul</th>
+                            <th>Aug</th>
+                            <th>Sep</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dec</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">H2</th>
+                            <th style="background: rgba(245, 197, 24, 0.25);">2026</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Clients</strong></td>
+                            <td>1</td><td>2</td><td>2</td><td>2</td><td>3</td><td>3</td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td>3</td><td>4</td><td>4</td><td>5</td><td>5</td><td>5</td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td style="background: rgba(245, 197, 24, 0.15);"><strong>5</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>REVENUE</strong></td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive">$2,767</td>
+                            <td class="positive">$3,467</td>
+                            <td class="positive">$3,467</td>
+                            <td class="positive">$5,267</td>
+                            <td class="positive">$5,267</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$21,902</strong></td>
+                            <td class="positive">$5,267</td>
+                            <td class="positive">$7,067</td>
+                            <td class="positive">$7,067</td>
+                            <td class="positive">$8,867</td>
+                            <td class="positive">$8,867</td>
+                            <td class="positive">$8,867</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$46,002</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$67,904</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">COGS (Dispatcher & Tech)</td>
+                            <td class="negative">($1,083)</td>
+                            <td class="negative">($1,798)</td>
+                            <td class="negative">($2,253)</td>
+                            <td class="negative">($2,253)</td>
+                            <td class="negative">($3,423)</td>
+                            <td class="negative">($3,423)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($14,233)</strong></td>
+                            <td class="negative">($3,423)</td>
+                            <td class="negative">($4,593)</td>
+                            <td class="negative">($4,593)</td>
+                            <td class="negative">($5,763)</td>
+                            <td class="negative">($5,763)</td>
+                            <td class="negative">($5,763)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($29,898)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($44,131)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Gross Profit (35%)</strong></td>
+                            <td><strong>$584</strong></td>
+                            <td><strong>$969</strong></td>
+                            <td><strong>$1,214</strong></td>
+                            <td><strong>$1,214</strong></td>
+                            <td><strong>$1,844</strong></td>
+                            <td><strong>$1,844</strong></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"><strong>$7,669</strong></td>
+                            <td><strong>$1,844</strong></td>
+                            <td><strong>$2,474</strong></td>
+                            <td><strong>$2,474</strong></td>
+                            <td><strong>$3,104</strong></td>
+                            <td><strong>$3,104</strong></td>
+                            <td><strong>$3,104</strong></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"><strong>$16,104</strong></td>
+                            <td style="background: rgba(245, 197, 24, 0.15);"><strong>$23,773</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>OPERATING EXPENSES</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td style="background: rgba(245, 197, 24, 0.15);"></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">R&D Contractors</td>
+                            <td class="negative">($15,000)</td>
+                            <td class="negative">($12,500)</td>
+                            <td class="negative">($10,000)</td>
+                            <td class="negative">($7,500)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($55,000)</strong></td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($30,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($85,000)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">G&A Contractors</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($30,000)</strong></td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($30,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($60,000)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Accounting Fees</td>
+                            <td class="negative">($4,650)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($18,150)</strong></td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($16,200)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($34,350)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Legal & Professional</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($6,000)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Software & Tools</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($700)</td>
+                            <td class="negative">($700)</td>
+                            <td class="negative">($700)</td>
+                            <td class="negative">($900)</td>
+                            <td class="negative">($900)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($4,400)</strong></td>
+                            <td class="negative">($900)</td>
+                            <td class="negative">($1,100)</td>
+                            <td class="negative">($1,100)</td>
+                            <td class="negative">($1,300)</td>
+                            <td class="negative">($1,300)</td>
+                            <td class="negative">($1,300)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($7,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($11,400)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Insurance & Other</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($6,000)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total OpEx</strong></td>
+                            <td class="negative"><strong>($26,150)</strong></td>
+                            <td class="negative"><strong>($21,900)</strong></td>
+                            <td class="negative"><strong>($19,400)</strong></td>
+                            <td class="negative"><strong>($16,900)</strong></td>
+                            <td class="negative"><strong>($14,600)</strong></td>
+                            <td class="negative"><strong>($14,600)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($113,550)</strong></td>
+                            <td class="negative"><strong>($14,600)</strong></td>
+                            <td class="negative"><strong>($14,800)</strong></td>
+                            <td class="negative"><strong>($14,800)</strong></td>
+                            <td class="negative"><strong>($15,000)</strong></td>
+                            <td class="negative"><strong>($15,000)</strong></td>
+                            <td class="negative"><strong>($15,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($89,200)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($202,750)</strong></td>
+                        </tr>
+                        <tr class="total-row" style="background: rgba(239, 68, 68, 0.1);">
+                            <td><strong>NET INCOME</strong></td>
+                            <td class="negative"><strong>($25,566)</strong></td>
+                            <td class="negative"><strong>($20,931)</strong></td>
+                            <td class="negative"><strong>($18,186)</strong></td>
+                            <td class="negative"><strong>($15,686)</strong></td>
+                            <td class="negative"><strong>($12,756)</strong></td>
+                            <td class="negative"><strong>($12,756)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($105,881)</strong></td>
+                            <td class="negative"><strong>($12,756)</strong></td>
+                            <td class="negative"><strong>($12,326)</strong></td>
+                            <td class="negative"><strong>($12,326)</strong></td>
+                            <td class="negative"><strong>($11,896)</strong></td>
+                            <td class="negative"><strong>($11,896)</strong></td>
+                            <td class="negative"><strong>($11,896)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($73,096)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($178,977)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <!-- Interactive Scenario Builder -->
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🎮</span> Scenario Builder — What If?</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Adjust the variables below to see how different scenarios affect the 2026 outlook. Drag the sliders to explore.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <!-- Controls -->
+                    <div style="background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #2d2d2d;">
+                        <h4 style="color: var(--accent-gold); margin-bottom: 1.5rem;">📊 Adjust Variables</h4>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Clients by Dec 2026</span>
+                                <span id="clientsValue" style="color: #10b981; font-weight: 600;">5</span>
+                            </label>
+                            <input type="range" id="clientsSlider" min="2" max="15" value="5" style="width: 100%; accent-color: #10b981;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Revenue per Client</span>
+                                <span id="revenueValue" style="color: #10b981; font-weight: 600;">$1,800</span>
+                            </label>
+                            <input type="range" id="revenueSlider" min="1000" max="3500" step="100" value="1800" style="width: 100%; accent-color: #10b981;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Gross Margin %</span>
+                                <span id="marginValue" style="color: #F5C518; font-weight: 600;">35%</span>
+                            </label>
+                            <input type="range" id="marginSlider" min="20" max="50" value="35" style="width: 100%; accent-color: #F5C518;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Monthly Fixed OpEx (stable state)</span>
+                                <span id="opexValue" style="color: #ef4444; font-weight: 600;">$15,000</span>
+                            </label>
+                            <input type="range" id="opexSlider" min="8000" max="25000" step="500" value="15000" style="width: 100%; accent-color: #ef4444;">
+                        </div>
+                        
+                        <button onclick="resetScenario()" style="width: 100%; padding: 0.75rem; background: #2d2d2d; border: 1px solid #3d3d3d; color: var(--text-secondary); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                            ↺ Reset to Base Case
+                        </button>
+                    </div>
+                    
+                    <!-- Results -->
+                    <div style="background: linear-gradient(135deg, rgba(245, 197, 24, 0.1), rgba(16, 185, 129, 0.05)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(245, 197, 24, 0.3);">
+                        <h4 style="color: var(--accent-gold); margin-bottom: 1.5rem;">📈 Scenario Results</h4>
+                        
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Dec 2026 Monthly Revenue</span>
+                                <span id="resultRevenue" style="color: #10b981; font-weight: 600;">$8,867</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Dec 2026 Gross Profit</span>
+                                <span id="resultGrossProfit" style="color: #10b981; font-weight: 600;">$3,103</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Dec 2026 Monthly Loss</span>
+                                <span id="resultLoss" style="color: #ef4444; font-weight: 600;">($11,897)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Clients to Breakeven</span>
+                                <span id="resultBreakeven" style="color: #F5C518; font-weight: 600;">24</span>
+                            </div>
+                        </div>
+                        
+                        <div id="scenarioInsight" style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 3px solid var(--accent-gold);">
+                            <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                                <strong style="color: var(--text-primary);">Base Case:</strong> At 5 clients with 35% margins, you'll lose ~$12K/month by December. You need 24 clients to break even.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📈</span> Revenue vs Burn Trajectory</h2>
+                <div class="chart-container">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div style="background: rgba(30, 30, 30, 0.8); padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; border: 1px solid #2d2d2d;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 1rem;">📖 Reading This Chart</h4>
+                    <div style="display: grid; gap: 1rem; color: var(--text-secondary); line-height: 1.7;">
+                        <p><span style="color: #10b981; font-weight: 600;">● Green (Revenue)</span> — Starts near zero, climbs steadily as we add clients. By December, we're at <span id="chartExplainRevenue">~$9K</span>/month with <span id="chartExplainClients">5</span> clients.</p>
+                        <p><span style="color: #ef4444; font-weight: 600;">● Red (Monthly Loss)</span> — Starts high at $25K because we're still paying for platform development. Watch it drop as costs stabilize, reaching <span id="chartExplainLoss">~$12K</span>/month by December.</p>
+                        <p><span style="color: #F5C518; font-weight: 600;">◌ Yellow Dashed (Clients)</span> — The staircase pattern. Each step is a new client signing. Revenue follows clients; losses shrink as we scale.</p>
+                    </div>
+                    <div style="border-top: 1px solid #2d2d2d; margin-top: 1rem; padding-top: 1rem;">
+                        <p style="color: var(--accent-gold); font-weight: 500; margin-bottom: 0.5rem;">The Key Insight: The lines are converging.</p>
+                        <p id="chartExplainInsight" style="color: var(--text-secondary); line-height: 1.7;">Revenue is rising, losses are falling. They don't cross in 2026—breakeven needs ~24 clients—but the gap shrinks from <strong style="color: #ef4444;">$25K</strong> to <strong style="color: #10b981;">$12K</strong>. That's costs stabilizing while revenue grows. Every new client from here improves the picture.</p>
+                        <p style="color: var(--text-secondary); margin-top: 0.75rem;"><strong style="color: var(--text-primary);">The 2027 question:</strong> How fast can we climb the client staircase?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">💰</span> Funding & Path to Profitability</h2>
+                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 197, 24, 0.05) 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #ef4444;">
+                    <h3 style="color: #ef4444; margin-bottom: 1rem;">The Funding Reality</h3>
+                    <p style="line-height: 1.8;">We've invested $138K of shareholder capital to date. 2026 will require an additional ~$175K to fund operations through year-end. This isn't a burn problem—it's an investment in growth infrastructure. Every dollar in R&D today reduces future costs; every client signed improves unit economics.</p>
+                </div>
+                <div class="insight-grid">
+                    <div class="insight-card">
+                        <h4>2026 Cash Requirements</h4>
+                        <p><strong>Projected Net Loss:</strong> ($178,977)</p>
+                        <p><strong>Already Funded:</strong> $138,010</p>
+                        <p><strong>Additional Capital:</strong> ~$175K needed</p>
+                        <p><strong>Total 2026 Investment:</strong> ~$317K cumulative</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Unit Economics @ Scale</h4>
+                        <p><strong>Revenue/Client:</strong> $1,800/month</p>
+                        <p><strong>Gross Margin:</strong> 35% ($630/client)</p>
+                        <p><strong>Fixed OpEx (stable):</strong> ~$15K/month</p>
+                        <p><strong>Breakeven:</strong> ~24 clients</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>2026 Milestones</h4>
+                        <p>✅ <strong>Feb:</strong> 2nd client signed—validation</p>
+                        <p>🎯 <strong>May:</strong> R&D winds to $5K, 3 clients</p>
+                        <p>🎯 <strong>Oct:</strong> 5 clients, $12K/mo loss</p>
+                        <p>🎯 <strong>2027:</strong> Path to 10+ clients, breakeven</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="content-section" id="insights">
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">💡</span> Key Insights & Strategic Position</h2>
+                <div class="insight-grid">
+                    <div class="insight-card">
+                        <h4>Market Entry</h4>
+                        <p>Q1 2026 is being tested for initial product-market fit. Contractor-based delivery model targeting 35-40% gross margin on client work.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Investment Phase</h4>
+                        <p>Total investment of $129.5K split between G&A (68%) and R&D (32%). January marked transition to W-2 payroll alongside contractor operations.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Funding Structure</h4>
+                        <p>$137,986 in shareholder contributions funding startup operations. Additional $33.8K contributed in January to support growth and payroll transition.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>January Operations</h4>
+                        <p>$32.5K monthly burn (down from $69.3K in December) primarily due to reduced R&D contractor costs ($4.3K vs $31K). First W-2 payroll costs added ($1.6K).</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Cash Position</h4>
+                        <p>$9,742 in cash plus $5,000 accrued revenue totaling $14,742 in current assets. Accounts payable of $5,344 results in positive working capital.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Critical Focus</h4>
+                        <p>Revenue acceleration is paramount. Need to scale from $1.7K/month to $10K+ to reduce burn rate dependency on shareholder contributions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🎯</span> Strategic Priorities</h2>
+                
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Revenue Target</div>
+                        <div class="stat-value" style="color: var(--accent-green);">$10K+/mo</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Gross Margin Goal</div>
+                        <div class="stat-value" style="color: var(--accent-gold);">35-40%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Client Acquisition</div>
+                        <div class="stat-value" style="color: var(--accent-purple);">Priority</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Break-Even Target</div>
+                        <div class="stat-value" style="color: var(--accent-orange);">Q2 2026</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(245, 197, 24, 0.1); border-radius: 0.75rem; border-left: 4px solid var(--accent-gold);">
+                    <h4 style="color: var(--accent-gold); margin-bottom: 1rem; font-weight: 600;">Next Steps</h4>
+                    <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
+                        <li>Scale revenue from $1.7K/month to $10K+ monthly through client acquisition and service expansion</li>
+                        <li>Improve gross margins from 25% to 35-40% through operational efficiency and pricing optimization</li>
+                        <li>Convert $47.5K R&D investment into market-ready services with clear value propositions</li>
+                        <li>Manage burn rate - December's $53K spend not sustainable without corresponding revenue growth</li>
+                        <li>Establish repeatable sales process and customer success framework</li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; border-left: 4px solid var(--accent-purple);">
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-weight: 600;">Currently Exploring</h4>
+                    <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
+                        <li><strong>Company Credit Cards:</strong> Evaluating business credit options to improve cash flow management and separate business/personal expenses</li>
+                        <li><strong>R&D Tax Credits:</strong> Determined not eligible for 2025; will evaluate eligibility for 2026 based on qualifying R&D activities</li>
+                        <li><strong>Accounting Fees Reduction:</strong> Monthly accounting fees decreasing from $4.65K to $2.7K starting February 2026 as onboarding phase completes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 58" style="height: 50px; margin-bottom: 0.5rem;"><g transform="scale(1) translate(10, 10)"><g transform="matrix(2.6449021867258327,0,0,2.6449021867258327,0.9556043990547832,-15.367969958469999)" fill="#ffffff"><path d="M14.414 20.19531 l-3.1152 0 l-0.9375 -1.9336 l-2.7344 0 l0 -2.7148 l1.4063 0 l-2.002 -4.1113 l-4.2773 8.7598 l-3.1152 0 l7.3926 -14.385 z M38.954765625 6.122999999999999 l-11.445 14.072 l-3.5742 0 l5.7227 -7.0313 l-5.7227 -7.041 l3.5742 0 l3.9355 4.8438 l3.9453 -4.8438 l3.5645 0 z M35.234765625 15.6152 l3.7207 4.5801 l-3.5742 0 l-1.9336 -2.373 z M48.5449225 11.8066 l6.8164 0 l0 2.7148 l-6.8164 0 l0 -2.7148 z M48.5449225 17.4805 l11.318 0 l0 2.7148 l-11.318 0 l0 -2.7148 z M48.5449225 6.1129999999999995 l11.318 0 l0 2.7148 l-11.318 0 l0 -2.7148 z M79.1406 14.511700000000001 l-3.4375 0 l0 -2.7148 l3.4375 0 l0 2.7148 z M81.426 6.122999999999999 l0 2.7148 l-8.8574 0 l0 11.357 l-2.8125 0 l0 -14.072 l11.67 0 z M91.347656875 6.122999999999999 l2.8125 0 l0 14.072 l-2.8125 0 l0 -14.072 z"/></g></g></svg>
+            <p style="margin-top: 0.25rem;">Sharper Finance. Stronger Decisions.</p>
+            <p style="margin-top: 0.5rem;">Axe Financial LLC • <a href="https://www.axe.financial" style="color: var(--accent-gold); text-decoration: none;">www.axe.financial</a> • Proprietary & Confidential</p>
+        </footer>
+    </div>
+
+    <script>
+        // Chart configurations
+        Chart.defaults.color = '#a0a0a0';
+        Chart.defaults.borderColor = '#2d2d2d';
+        Chart.defaults.font.family = 'Inter';
+        
+        // Global chart reference for dynamic updates
+        let forecastChartInstance = null;
+
+        // Expense Trend Chart
+        const expenseTrendCtx = document.getElementById('expenseTrendChart').getContext('2d');
+        new Chart(expenseTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                datasets: [{
+                    label: 'Total Expenses',
+                    data: [359, 6420, 0, 3420, 11578, 15661, 69286, 32536],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#a0a0a0',
+                        borderColor: '#2d2d2d',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + (value/1000) + 'K';
+                            }
+                        },
+                        grid: {
+                            color: '#2d2d2d'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Expense Breakdown Chart
+        const expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
+        new Chart(expenseBreakdownCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Contractors G&A', 'Contractors R&D', 'Legal & Prof', 'Accounting', 'Payroll', 'Other'],
+                datasets: [{
+                    data: [56866, 41188, 14565, 12775, 2011, 2074],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(245, 197, 24, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(148, 163, 184, 0.8)'
+                    ],
+                    borderColor: '#1a1a1a',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#a0a0a0',
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#a0a0a0',
+                        borderColor: '#2d2d2d',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': $' + value.toLocaleString() + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2026 Forecast Chart
+        const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+        forecastChartInstance = new Chart(forecastCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [1667, 2767, 3467, 3467, 5267, 5267, 5267, 7067, 7067, 8867, 8867, 8867],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Monthly Loss',
+                    data: [25566, 20931, 18186, 15686, 12756, 12756, 12756, 12326, 12326, 11896, 11896, 11896],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Clients',
+                    data: [1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5],
+                    borderColor: '#F5C518',
+                    backgroundColor: 'rgba(245, 197, 24, 0.1)',
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderDash: [5, 5],
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#a0a0a0', padding: 15 }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#a0a0a0',
+                        borderColor: '#2d2d2d',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#2d2d2d' },
+                        ticks: {
+                            callback: function(value) { return '$' + (value/1000).toFixed(0) + 'K'; }
+                        }
+                    },
+                    y1: {
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#F5C518' },
+                        title: { display: true, text: 'Clients', color: '#F5C518' }
+                    },
+                    x: {
+                        grid: { color: '#2d2d2d' }
+                    }
+                }
+            }
+        });
+
+        // Tab navigation
+        const tabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('.content-section');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetSection = tab.getAttribute('data-section');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active section
+                sections.forEach(s => s.classList.remove('active'));
+                document.getElementById(targetSection).classList.add('active');
+            });
+        });
+
+        // Scenario Builder Logic
+        const clientsSlider = document.getElementById('clientsSlider');
+        const revenueSlider = document.getElementById('revenueSlider');
+        const marginSlider = document.getElementById('marginSlider');
+        const opexSlider = document.getElementById('opexSlider');
+
+        function updateScenario() {
+            const clients = parseInt(clientsSlider.value);
+            const revenuePerClient = parseInt(revenueSlider.value);
+            const marginPct = parseInt(marginSlider.value) / 100;
+            const fixedOpex = parseInt(opexSlider.value);
+
+            // Update display values
+            document.getElementById('clientsValue').textContent = clients;
+            document.getElementById('revenueValue').textContent = '$' + revenuePerClient.toLocaleString();
+            document.getElementById('marginValue').textContent = marginSlider.value + '%';
+            document.getElementById('opexValue').textContent = '$' + fixedOpex.toLocaleString();
+
+            // Calculate results
+            // Include existing client at $1,667
+            const decRevenue = 1667 + ((clients - 1) * revenuePerClient);
+            const grossProfit = Math.round(decRevenue * marginPct);
+            const monthlyLoss = grossProfit - fixedOpex;
+            const grossProfitPerClient = Math.round(revenuePerClient * marginPct);
+            const breakeven = grossProfitPerClient > 0 ? Math.ceil(fixedOpex / grossProfitPerClient) : 999;
+
+            // Update results in Forecast tab
+            document.getElementById('resultRevenue').textContent = '$' + decRevenue.toLocaleString();
+            document.getElementById('resultGrossProfit').textContent = '$' + grossProfit.toLocaleString();
+            
+            if (monthlyLoss >= 0) {
+                document.getElementById('resultLoss').textContent = '$' + monthlyLoss.toLocaleString();
+                document.getElementById('resultLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('resultLoss').textContent = '($' + Math.abs(monthlyLoss).toLocaleString() + ')';
+                document.getElementById('resultLoss').style.color = '#ef4444';
+            }
+            
+            document.getElementById('resultBreakeven').textContent = breakeven > 50 ? '50+' : breakeven;
+
+            // Update Overview tab - Looking Ahead section
+            document.getElementById('lookingAheadClients').textContent = clients;
+            if (monthlyLoss >= 0) {
+                document.getElementById('lookingAheadLoss').textContent = '$' + monthlyLoss.toLocaleString() + ' profit';
+                document.getElementById('lookingAheadLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('lookingAheadLoss').textContent = '$' + Math.abs(Math.round(monthlyLoss/1000)) + 'K';
+                document.getElementById('lookingAheadLoss').style.color = '';
+            }
+
+            // Update Overview tab - Key Numbers
+            document.getElementById('keyRevenue').textContent = '$' + revenuePerClient.toLocaleString();
+            document.getElementById('keyMargin').textContent = marginSlider.value + '%';
+            document.getElementById('keyBreakeven').textContent = breakeven > 50 ? '50+' : breakeven;
+            document.getElementById('keyGrossProfit').textContent = '$' + grossProfitPerClient.toLocaleString();
+
+            // Update Journey Timeline - Dec 2026 target
+            document.getElementById('journeyClients').textContent = clients;
+            document.getElementById('journeyRevenue').textContent = '$' + (decRevenue / 1000).toFixed(1) + 'K';
+            if (monthlyLoss >= 0) {
+                document.getElementById('journeyLoss').textContent = '$' + (monthlyLoss / 1000).toFixed(1) + 'K/month profit';
+                document.getElementById('journeyLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('journeyLoss').textContent = '$' + (Math.abs(monthlyLoss) / 1000).toFixed(1) + 'K/month loss';
+                document.getElementById('journeyLoss').style.color = '';
+            }
+
+            // Update Chart Explanation box
+            document.getElementById('chartExplainRevenue').textContent = '~$' + (decRevenue / 1000).toFixed(0) + 'K';
+            document.getElementById('chartExplainClients').textContent = clients;
+            if (monthlyLoss >= 0) {
+                document.getElementById('chartExplainLoss').textContent = '$' + (monthlyLoss / 1000).toFixed(0) + 'K profit';
+                document.getElementById('chartExplainLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('chartExplainLoss').textContent = '~$' + (Math.abs(monthlyLoss) / 1000).toFixed(0) + 'K';
+                document.getElementById('chartExplainLoss').style.color = '';
+            }
+            
+            // Update chart explanation insight
+            let chartInsight = '';
+            if (monthlyLoss >= 0) {
+                chartInsight = `Revenue is rising and has overtaken costs—<strong style="color: #10b981;">you're profitable!</strong> At ${clients} clients with ${marginSlider.value}% margins, you make <strong style="color: #10b981;">$${monthlyLoss.toLocaleString()}</strong>/month.`;
+            } else if (breakeven <= clients + 5) {
+                chartInsight = `Revenue is rising, losses are falling. Breakeven needs ${breakeven} clients—you're only <strong style="color: #F5C518;">${breakeven - clients} clients away</strong>. The gap shrinks from <strong style="color: #ef4444;">$25K</strong> to <strong style="color: #10b981;">$${(Math.abs(monthlyLoss) / 1000).toFixed(0)}K</strong>.`;
+            } else {
+                chartInsight = `Revenue is rising, losses are falling. They don't cross in 2026—breakeven needs ~${breakeven} clients—but the gap shrinks from <strong style="color: #ef4444;">$25K</strong> to <strong style="color: #10b981;">$${(Math.abs(monthlyLoss) / 1000).toFixed(0)}K</strong>. Every new client improves the picture.`;
+            }
+            document.getElementById('chartExplainInsight').innerHTML = chartInsight;
+
+            // Update chart data
+            if (forecastChartInstance) {
+                // Calculate monthly progression
+                // Assume clients ramp: Jan=1, Feb=2, then spread remaining evenly
+                const clientRamp = calculateClientRamp(clients);
+                const revenueData = clientRamp.map((c, i) => {
+                    if (i === 0) return 1667; // Jan - existing client only
+                    if (i === 1) return 1667 + 1100; // Feb - prorated new client
+                    return 1667 + ((c - 1) * revenuePerClient);
+                });
+                
+                // OpEx ramps down from 26K to fixedOpex by month 5
+                const opexRamp = [26150, 21900, 19400, 16900, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex];
+                
+                const lossData = revenueData.map((rev, i) => {
+                    const gp = Math.round(rev * marginPct);
+                    const cogs = rev - gp;
+                    return Math.abs(gp - opexRamp[i]);
+                });
+
+                forecastChartInstance.data.datasets[0].data = revenueData;
+                forecastChartInstance.data.datasets[1].data = lossData;
+                forecastChartInstance.data.datasets[2].data = clientRamp;
+                forecastChartInstance.update();
+            }
+
+            // Update insight text
+            let insight = '';
+            if (monthlyLoss >= 0) {
+                insight = `<strong style="color: #10b981;">🎉 Profitable!</strong> At ${clients} clients with ${marginSlider.value}% margins, you'd make $${monthlyLoss.toLocaleString()}/month profit!`;
+            } else if (clients >= breakeven) {
+                insight = `<strong style="color: #10b981;">Breakeven achieved!</strong> At ${clients} clients, you've crossed the profitability threshold.`;
+            } else if (clients >= 10) {
+                insight = `<strong style="color: #F5C518;">Getting close!</strong> At ${clients} clients, you're ${breakeven - clients} clients away from breakeven. Monthly loss: $${Math.abs(monthlyLoss).toLocaleString()}.`;
+            } else if (clients >= 5) {
+                insight = `<strong style="color: var(--text-primary);">Building momentum.</strong> At ${clients} clients with ${marginSlider.value}% margins, you'll lose ~$${Math.abs(monthlyLoss).toLocaleString()}/month. Need ${breakeven} clients to break even.`;
+            } else {
+                insight = `<strong style="color: #ef4444;">Early stage.</strong> At ${clients} clients, monthly losses are $${Math.abs(monthlyLoss).toLocaleString()}. Focus on client acquisition—you need ${breakeven} clients for breakeven.`;
+            }
+            document.getElementById('scenarioInsight').innerHTML = `<p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">${insight}</p>`;
+        }
+
+        function calculateClientRamp(targetClients) {
+            // Jan=1, Feb=2 (new client), then ramp to target
+            // Spread additional clients across Mar, May, Aug, Oct pattern
+            const ramp = [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+            const remaining = targetClients - 2;
+            
+            if (remaining >= 1) ramp[4] = 3; // May
+            if (remaining >= 1) { ramp[5] = 3; ramp[6] = 3; }
+            if (remaining >= 2) { ramp[7] = 4; ramp[8] = 4; } // Aug
+            if (remaining >= 3) { ramp[9] = Math.min(targetClients, 5); ramp[10] = Math.min(targetClients, 5); ramp[11] = Math.min(targetClients, 5); } // Oct+
+            
+            // For targets > 5, spread more evenly
+            if (targetClients > 5) {
+                const extra = targetClients - 5;
+                const perMonth = extra / 7; // spread over May-Dec
+                for (let i = 4; i < 12; i++) {
+                    ramp[i] = Math.min(targetClients, Math.round(3 + ((i - 4) * perMonth) + (i >= 7 ? 1 : 0) + (i >= 9 ? 1 : 0)));
+                }
+                ramp[11] = targetClients;
+                ramp[10] = targetClients;
+                ramp[9] = Math.round(targetClients * 0.9);
+            }
+            
+            return ramp;
+        }
+
+        function resetScenario() {
+            clientsSlider.value = 5;
+            revenueSlider.value = 1800;
+            marginSlider.value = 35;
+            opexSlider.value = 15000;
+            updateScenario();
+        }
+
+        // Add event listeners
+        clientsSlider.addEventListener('input', updateScenario);
+        revenueSlider.addEventListener('input', updateScenario);
+        marginSlider.addEventListener('input', updateScenario);
+        opexSlider.addEventListener('input', updateScenario);
+
+        // Initialize scenario AFTER chart is ready
+        setTimeout(updateScenario, 100);
+    </script>
+</body>
+</html>
