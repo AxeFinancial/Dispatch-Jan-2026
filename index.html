@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Tailor • January 2026 Financial Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1f1f1f;
+            --accent-gold: #F5C518;
+            --accent-gold-dim: #C9A227;
+            --accent-green: #10b981;
+            --accent-blue: #F5C518; /* unused - kept for compatibility */
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-pink: #ec4899;
+            --text-primary: #f1f5f9;
+            --text-secondary: #a0a0a0;
+            --text-muted: #64748b;
+            --border: #2d2d2d;
+            --red: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.95);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dim) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-tab {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        .nav-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(245, 197, 24, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #f1f5f9 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.75rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gold);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(245, 197, 24, 0.25);
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-card:nth-child(1)::before { background: var(--accent-orange); }
+        .metric-card:nth-child(2)::before { background: var(--accent-gold); }
+        .metric-card:nth-child(3)::before { background: var(--accent-green); }
+        .metric-card:nth-child(4)::before { background: var(--red); }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .metric-value.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-value.negative {
+            color: var(--red);
+        }
+
+        .metric-change {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-change.warning {
+            color: var(--accent-orange);
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border-left: 4px solid var(--accent-orange);
+            padding: 1.75rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .highlight-box h3 {
+            color: var(--accent-orange);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .highlight-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .highlight-box li {
+            padding-left: 1.75rem;
+            position: relative;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .highlight-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 2rem;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .insight-card {
+            background: rgba(26, 26, 26, 0.5);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .insight-card:hover {
+            border-color: var(--accent-gold);
+            background: rgba(26, 26, 26, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(245, 197, 24, 0.2);
+        }
+
+        .insight-card h4 {
+            color: var(--accent-gold);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .insight-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 197, 24, 0.2);
+            background: rgba(26, 26, 26, 0.8);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        th {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 1rem 0.875rem;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--accent-gold);
+            white-space: nowrap;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        th:first-child {
+            text-align: left;
+        }
+
+        td {
+            padding: 0.875rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        td.negative {
+            color: var(--red) !important;
+            font-weight: 500;
+        }
+
+        td.positive {
+            color: var(--accent-green) !important;
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background: rgba(26, 26, 26, 0.5);
+        }
+
+        .total-row {
+            font-weight: 700;
+            background: rgba(245, 197, 24, 0.15);
+            border-top: 2px solid var(--border);
+        }
+
+        .total-row td {
+            color: var(--text-primary);
+            font-weight: 700;
+            padding: 1rem 0.875rem;
+        }
+
+        .indent {
+            padding-left: 2rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-left: 0.5rem;
+        }
+
+        .badge.startup {
+            background: rgba(245, 197, 24, 0.2);
+            color: var(--accent-gold);
+        }
+
+        @media (max-width: 1024px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .nav-tabs {
+                justify-content: center;
+            }
+            
+            .insight-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1.5rem;
+            }
+
+            .hero h2 {
+                font-size: 1.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .nav {
+                padding: 0.75rem 1rem;
+            }
+            
+            .nav h1 {
+                font-size: 1.1rem;
+            }
+
+            .nav-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                justify-content: center;
+            }
+            
+            .nav-tab {
+                font-size: 0.8rem;
+                padding: 0.4rem 0;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            
+            .metric-card {
+                padding: 1rem;
+            }
+            
+            .metric-value {
+                font-size: 1.5rem;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+            
+            .section-header {
+                font-size: 1.1rem;
+            }
+            
+            .highlight-box {
+                padding: 1.25rem;
+            }
+            
+            .highlight-box ul {
+                padding-left: 1rem;
+            }
+            
+            .highlight-box li {
+                font-size: 0.9rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            /* Journey Timeline - horizontal scroll on tablet */
+            .timeline-container {
+                overflow-x: auto;
+                padding-bottom: 1rem;
+            }
+            
+            .timeline-container > div {
+                min-width: 160px;
+            }
+            
+            .timeline-line {
+                display: none;
+            }
+            
+            /* Tables - horizontal scroll */
+            table {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.4rem;
+                min-width: 60px;
+            }
+            
+            /* Scenario Builder - stack on mobile */
+            .section > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Key Numbers grid */
+            .section > div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            footer {
+                padding: 1.5rem 1rem;
+            }
+            
+            footer p {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero h2 {
+                font-size: 1.25rem;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-value {
+                font-size: 1.75rem;
+            }
+            
+            .nav-tabs {
+                gap: 0.5rem;
+            }
+            
+            .nav-tab {
+                font-size: 0.75rem;
+            }
+            
+            /* Journey Timeline - stack vertically on phones */
+            .timeline-container {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+                overflow-x: visible;
+            }
+            
+            .timeline-container > div {
+                min-width: unset;
+            }
+            
+            /* Key Numbers - single column on small phones */
+            .section > div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            /* Balance sheet grid - stack */
+            .section > div[style*="grid-template-columns: 1fr 1fr; gap: 2rem"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Print Styles for Save as PDF */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .nav {
+                position: relative !important;
+                background: #1a1a1a !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .content-section {
+                display: block !important;
+                page-break-after: always;
+            }
+            
+            .section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            .hero, .section, .metric-card, .highlight-box, .entity-card, .insight-card {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            a {
+                text-decoration: none !important;
+            }
+        }
+        </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-content">
+            <h1>Dispatch Tailor • January 2026</h1>
+            <div class="nav-tabs">
+                <a class="nav-tab active" data-section="overview">Overview</a>
+                <a class="nav-tab" data-section="financials">Financials</a>
+                <a class="nav-tab" data-section="forecast">2026 Forecast</a>
+                <a class="nav-tab" data-section="insights">Insights</a>
+            
+        </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <div class="content-section active" id="overview">
+            <div class="hero">
+                <div class="hero-content">
+                    <h2>January 2026 Financial Package <span class="badge startup">Early Stage</span></h2>
+                    <p class="hero-subtitle">Total Revenue: $5,000 | Shareholder contributed: $138K | Building foundation</p>
+                    
+                    <a href="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiA0IDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjEgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iagozIDAgb2JqCjw8Ci9CaXRzUGVyQ29tcG9uZW50IDggL0NvbG9yU3BhY2UgL0RldmljZVJHQiAvRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0RDVERlY29kZSBdIC9IZWlnaHQgNDMwIC9MZW5ndGggMjcxNjIgL1N1YnR5cGUgL0ltYWdlIAogIC9UeXBlIC9YT2JqZWN0IC9XaWR0aCAyMDAwCj4+CnN0cmVhbQpzNElBMCEiX2FsOE9gW1whPDwqIyEhKiciczVGKDM4T0dqUDpmOihZOFBEUFEhPEUwIyFRWTZAISEhLVUhISRrUkZFMThMNjZLQjU9cysoLiEhKicjeiEhJEc7RilWKlp6enp6enohISonInA9OTNFemRrKFAienp6enp6enp6enp6ISIhMUlGKDUxTSE6VHNnISRsU2U9XXRlKiE+R002ISMwJ0o9XXRlKiFAUnBKISMvbUU9XXRlKiFCXj5eISMwWCFFLSknWyFEaWFyISMwSFE7RjpFYSFGdTAxISU7Slo7RjpFYSFGdTAxISU7O1U7RjpFYSFGdTAxISU7PnJFY185XSFLNyFZISdHKzdGXmtDT3ohISonIiEiPEZWPERya3QhIWlRKSEjdHVbISlgZWUhKCdkaj1zKmVGekRrWzQzMzshN08iLT9WZj1zKmVGekBbUjJyW3RPZV4odHIocD1zKmVGeixiUCw7JXRqb19bYS8mWT1zKmVGenA9OTNFemRrLE5JRWFccUohISEhJSEhISEjQW5EI0NudHVIZiU5V1oyJ0A2XlokPG1LMXohISRrUEZea0NPeiEhKiciISI8RlY8RHJrdCEkRDdBISN0dS8hLGhqVSErdTpKIStjLVEhKGQwLiErUSFdISREN3MhJitDLSEmamwzISgtX2khc0FgMCFzSmYxIjllcjQicFlQQiM2dEo9JWdyYU8ka1ghXyZlUFdkJkpHcCIoREBLJCdiTSNwK1cpKzwqP1FARicsTWk8K3MmIUwqWmxJJ2dBalNBIlUsJjcicFlWRCNTJW1pJkpROS0qWmNARCpaY0BEKlpjQEQqWmNARCpaY0BEKlpjQEQqWmNARCpaY0BEKlpjQEQqWmNARCpaY0BEKlpjQERzMWVVSCNRXyg1Y2lYOm0hITNgNSF0YlM2X3VMZVghPDwwJiFzJkUmenohIWlsOCM2RyMzIXMvRz8hKktqNiEhKi0oITxpWjomSS9DQCFXckgnITxOPysiVTVQRCNTSjo4NW5iKTRRLW4lcSt1MiM3O2NRbi1GY3MmOiNvIi1rLDtWO0c7SC1cOkZHLGpCWm05KyVKVickNDJLR0tKNmE9SHFBMGlSc2lXJGdyJ0VKNDd6enohISEkIV91TEpgITw8KiJ6enohPDphUSRqLU0xIVlHTUghJ15JPDVRQ2Nhenp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enohISFKYWBVM2U+XGRPLU87ZDxZc3AjOXR1bUA7Z3JrZV4+QGRvX1U8aEU8TmdYKyQoUGRGbyRSenp6enp6enp6enp6enp6enp6ISEhIS9JRU0jZGZDRUdsIzxxNm5nP1xQaUc6VURaP2NlQ0sqO2MjWUNUbGdAZ29nTltJalJJc0Y3KitYWS5wL0pFa0NeXXIwW2NqY2FkP1RdKUdCb2IzdWFpbm1pXkY1MzciQmxoTjtbLyYnVkJhY0xIXXFqJCZTWU4zZ1xZNTtMUy06LEZnbVQ0aD5eUVUkY11Cc2I9UjBOYz1cUiJwP3JfL20qbiRVZDxBL2toPGpgZkdFcShkLkVePVFgNk9EbDM6US8/QVxqTjYyW3FkIlt1Niw3UjA9Ky42ZFA6KENfbTwvPnAjNkUvXT8xdGwvOVYnPnBbRmF0WyohXFtoR007QlkxM1k3X2YzY1hdRSNibWVFZ1leYC5aIVQ8My5MdS96enp6enp6enp6enp6enp6enp6enohIltfPVdhWy8hQXBQWEQpbT5DNSU2aUVMPkpqbylwajApUlIyN2UmTk0iMW1cPV48OFQrPHVdaElGIV9DP2VvVV49KWdoWypiO0VRSGgnXEVzSilrbEVhZ2hta2RgMWRwLkJLUlxEOW1MKjsoZjp1U0twZjddTTIoLEVpY0IzQ1BRbSlpcSJXaSFBJmRiOjtNOFBbZSZpVEYhUEQxXEU8Xjc8RVNMOUFjWGM+UldoTlFaPCFpVTYoSCZRW0IuPEJMMTM7NzA3YVlxWV4zNU8rJkRlIiZyMU1BXV1XVko1Mk5GKy8lLmh0bz9GcnI9bExyckNdK3p6enp6enohIlZGbGs4QjtQY1MwWSQ7MkxmJDU2WjNfZlhWUy1jKU5sXDRWSmoiJ0BBTmonIWs+LzRAUl49PjBzXmFIbz4+X19yZUlCVlVmSTVNY0IuU21iTWxxRk89Ljwxc2JLSlw8VUArOigyK100NWtZIl9KNEllWTM/WEtjUF9HOlhmMDNAUj51RiRdSCdqKDRkLUlCISVoajFiZFpDKi1oKGpAKmVuNz9rTVxYWDpRYWMucEstRkVtbXBoRDdcN1JnLDZObjZjQWhaTVtvX1RvV11NXS1HRFZCNV82Z29GRlpnL1ZJRiNjWyMrbSgmQW09XFAnRE9FWypPJFBbNlNkUD9uPVJPcGFFZV9pcWsmUUAlNmQ5dSM/MCFuXChwbS9uN2hHSS9pcktbOk44YGhAUFUlP0NkJjRcW2hFczxhJi1ScVg/R3NeMnFnM1otYFgtNE8rbmlnQSxyT2BAQWJvQC0pa248Rzxgb0tfPCpdclpZSzA1ajB1PSdIWUpsJEBVbC1BQFU7W0hxLVMpJWYrVSFqbDNyOlVETi5lYj1kY1YnRD4hUyNoSWIjMnEtQUJpbkJBaUM6QFZUYG05UXVDXSwwa2RDQC9VMFJjcG9CTVEqVTotNzErPzYsM0kjenohQEJmQm4wVzpsRGY4bkddSDk0MD9uVkhaQV0qPyVVRzBHVnA7SFhYVklRTzBCQD9GajwiNSw2UENVJSUzJUd0P2VsV2NpMFpANVEuRF1BZEokJio8KytDNVhPJm87LFQqNyRjPmtDWSc2U2RQP249Uk9wYVItbzY3YVcvQyE6ImtKUU1bOy1yWEQlWWQqL3VTciRVdUpuaUw1P1NxXmdqa01cWFg6UVkzKS9iX0k5ciMwc0NmRkZnUVI7XVkyOlowXl80VWZNXmNiYi85VC1MZkJXYV9FL1docHNhMmpwOFFHbz9TKjJqISsxYmlec3BRZiwxSSpOSDtQMEFYJDA7YWhEP28wJElVbF1sKVFNck0vbU1MKyFoST5nLDkpJjxhUkNGbTxAMGhnJWNyQVE2X2tqRl5RKXUpPUltK3VuPS9GR1QiWTRKW2M8Z0xhRFY9T011R0pAbXFONUdOTGxGMlcoRCxXV3JfYFFEdGwjciY6enp6eiFvaWQvMkxQcUxJRUxJKC4vWzNGUXJCYT5aQiYxbkopRjJxP2xzalhCQTBLY1FvZzsiQzpFYkJiUWVYPEJBMEtjUW9nOyJDOkViQmJRZVg8QkEwS2NRb2c7IkM6RWJCYlFlWDxCQTBLY1FvZzsiQzpFYkJiUWVYPEJBMEtjUW9nOyJDOkViQmJRZVg8QkEwS2NRb2c7IkM6RWJCYlFlWDxCQTBLY1FvZzsiQzpFYkJiUWVYPEJBMEtjUW9nOyJDOkViQmJRZVg8QkEwS2NRb2c7IkM6RWJCYlFlWDxCQTBLY1FvZzsiQzpFYkJiUWVYPEJBMEtjUW9nOyJDOkViQmJRZVg8QkEwS2NRb2c7IkM6RWJCYlFlWDxCQTBLY1FvZzsiQzpFYkJiUWFCcFgocEhRUmwqVV9ETVhxT2goX18qITQtQkMkU3BoSXBiaD8vaDdvcXJYTyRxSXp6eiEhITdGLERfbFkhdSctKj5oZikkXDAiJ25oZko6Wl81R0FQci85MT4jT09HS0Y9bypiOkk/bnBGNz5nPFZvWDAlUU1bOy1yWEQlXUNeM25jYmRaQyotaChqQCplbjc/a01cWFg6UWFCNGVGWU9LcEhKdV4pTFI9NlI7XVkyOlowXl9HLy81YCUqTyhGX0xEY14rbTxOQm1YPmlFMiMvL3IqRF0kWGhmSjpaXzVHQSMpNCgvbEtgMkVFN3IvRS9kKi91U3IkVXVKbmZFTnNePz1IPksyN1dhIVMkYHQvYl9JOXIjMHM8VHBdaTBwZVRoc2pFQT1dNFVmTV5jYmIvOVQtPEUxPk9IcVJwYl9kZVlUNk0sMT5kMEJUPkBHSEg1VyVHVDdtMVE1IkJEbztwYGF0aCMmUGhDJTw9IkFcUj9kNUQpYW9nQiNncjFHLz5jJDJiXWhMUzosU1xiSnRZZSlZXGZGWmcvVklGI2NbIyttKCZBbT1cUCdET0VbKk8kUFs2U2RQP249Uk9wYUVlX2lxayZRQCU2ZDl1Iz8wIW5cKHBtL243aEc7TFhkUWJpR2VXTDhQVT86QiRBUDFINyE9Ii5Hc1E1aShLaz1xUD9GSzxnITBzcFgtYyFmRGttT3p6eiEmTT5iPClJXnNcZlFjb2RwNGhEXDRFJydOVCtIWmRfUWdpLVo8WFclSXMtKmwiTD0iSDVXJUdUN20xUTUiIV1AXChwbS9uN2hHVD9vam02QVxSP2Q1RClhbm9KOCluNTcuNitJI2NoaFZrS01zXGJKdFllKVdZI2JDLl5SSWcyTWlbS0Ioa2VBMSJEbm4tRl0vRSQka2xdOC5AV2djaiErNTpVVG0mYTlVRW5eRi5bPE0lR2YlPSM6enp6enp6JUlfQjFMNjhaIVpZKSw9MGBCSEhlKGlfaixDLnVxP0prMC9yWj1pSjw2JiVoOU1ca10+R0Fgci5DWDJQWDAwIWpCcjc5U0FuUytmKDYtRmdMRDReTktYbDglTHBbclpmWFVlUDFUUiJQcE5rZ14sbFtrdDlMVSZmUkkoNCohJDRWOWUoSlc/ZFs/XHJjMFdvKyIuOCZKWiQpT2tTWUJWZ1c7Y0VhZGhDQ2gmdWovIkJqQWhMQ01fYHRrMSZkVmJBZTgiV2lnMFY+YzRgbmlbPTgyVklITSEtNVE2MCsma0laT2JxOCMqKT1aR28vRW5kZ19PXE1UIkBvY0VrL1pxPDZaKEBoUFwtcDlFNSVtenp6enp6ISEhK0NubCtSRDA4MkksMFxNSD9RWlRCQz5aNyJsTHU1X21lSk8vZ1lCa1ApNF1PWmBNS1o6YV5EVmFMMEdvMWQjOChrZEt1RF1CbUAxUUxoT0JhMClxLmJeQ2VSTXBTIShDRyM5QTk2WjFyYmRsSEVTZjdQPGlWPFwhMzooZ0dOZGhQXjc5YmsrXWplTk8+TEo9U3EqISEhIlM0TGhtNWg1SjleN25AJGNdJGg9IUglV0ZuV2VmdVpkaCpVP3EjOj0hVlltRV1OOG5yOS9tR0AzYXNqS05VMXBXclVOaS90XDxtRlZNJUBjS0pUXkpGNUZrZk9uQydFczE7LG5uVS1KOGRWbC4pTzduJ3VkOGJhWCNsQWFpPnp6JScsKGMnMFk+PVtEP1FvNUEtT0NgKHJHXWxEKmNsSFZsTkNdM1AmLil1Zm8uYlg/UXMiIyZgW185QnJYSEk9TUEsNSlzTz9tX0EyVkQ9T25DM3FPMDVGNUYiW3Q2UTIiQVA8RlI5ajZgQUplKzkuRGY5KWklVD5SWlxQZiMyUSM6RWBtR0BlXDYjQFovZmEpVig3KiNtRiJtQjhHSXIxInFrYlMoYCxpKjU0Z2R1KHEqcmFQJkliSDh6NnNhKzxHUCFPIU07YUpWYF85bUdnWklaWWI7SzdYTVBMMU86SkFfJ1x0ZGYjLCdOOj9nTFA/NGopdU11XGxzLVVUKFQucVpTVCFES1hdPzFlcz5LRFMrWGkhYEEnTGg8LUgyUi5zaS5qYCsoTkdaJDxuVDBjNWlBZVQxJzNQdGI5MTw2ayk3YmswLSdvXjM2T3p6enohITsyZE8nOGM7aSkwKVM6K01ASTRfaGg1IS5kWWJKOUhHQ3p6enohIVxrUVlQOiE/VEFAOF1bJmhmR0VuQzQtb2hZIzVlQ21yOnp6enoiMXNcQXBPTjQ+aHAtcXBXUkUnYW1mRTtbXlJZYWp6enp6eiZNTkY2cnJDR004KWtRRzdnV2pjSW9OP0ZNVUZeK2hZSzI3KVpUajx6enohIVtlbGdZKFVTSSFwXEU+JClHJGpSKT0oVHRXXy1JNFpTTFlRK1knIU4oLVpJTEtEbHBGa2lLLmxDcERbX0UidT8yS3VdW00+NTJ6enp6eiEhISxjTDlsND9McHIvV2c5MGkvW0RgcEtkOCdAOTw2aWwnKk9ATDFyckMsUUw5W2sqVmJXcjBFOkotImRzVHFGRUU/L2E5XmdiTnBpYCRua1BpUFpsV0MybUVjQyFmWHIyMlIvKDwkSSc6QFJRbGIoQlJVTycxKCtzczhQbFxdLXFMbjw3ci1hZzRwISFmIW4xLyxHXEMhPVU/YylhaW4iLjNOX19yJTF1WSp1LCJnVkdWcidBNSlRb1JLblInRC1gYFRYRjMrVXBFJVxEcnBiTltuWHVCUmhyM1E5YyMhOSdpUXM+cmJROi81LGAqJ0BrbEhiKltQQmJHbCRfWGsyQSpWVkwhJHFlUTpQbGdcXEQvMSNeaXJtJi1RZUosZlFMenp6enp6ISEhKEtFW110T2ZvQiFINVxkckU0JktDJklwcDkjU3QncVxBI2ExTWpVaUxyWzhTJTpiWi0pU1ZfIkdxYTVtJyEoSCdBKj0pYVBuLS8qOUduKFhENVtwOmYmOVJpTVRHcWE2ISIzJUFXKE5DKygmI2YnX1ZWWXM+VkwlRnFEYy1KVXA3QD5hU2BAT0EpZlBjVyEhJTtVVUVbamcyUDgiTTNUXlwiMl9OLVNSb2V0M05ULXNOcnJAbjRnMSJRaC02Y2wjUz4jXk5SckZRcWdyY2w2RzgkM01WUTYrazNpW0taZ1BQU1w5TE1CbVZnKyluND5BdXQkVmImV0JBcS0rYD0zOTZkbEdxajc5K2NiI0UjQ0dSZGRlXDRZOmRVITpfZXUnLzBjXyklUjw5RydUYlJJUXBLaiomaGlXQC1jdCFgcisjZUlQJlxoQFExJFtsJiNFP2ljZyw+eiEhIU1zOCFSW0hrJkgncm5zZ2BVQWo3L1ZSbEdhMVVPJyhFPDooOCoyISEhIW0oXDRCLUNjWjljUCo2M25QLmZmKEpKdSVbbWQ7RW5nV0Y9bkJCLE1gKCVOJj5KUjJhcSknKU48RkZmRC9uJlBtL1c1a2NpJS5rSz5CWDhTM3I8V05VU0UtdT5RPWEoISEkRFNGNWhAOV9RPTMlZTJhPkRscUxePGJPQUEuNzxrbF4qPkhRZ0EkMmZ0TnN0Q2hQM1k4KFBBKElcTzQ5VHMxPldOb150UDlFWSNSXkonWllzLlZJQ2AyQW11TC1hM0gtcyoqQ2c6b0EiYEZAZl5AbD1gK0o4MUpTazZyPmNuYHFSWXNgZyVaYTghdUtRbVZgTkQ/WTkwYU8idGx1UEA/LnJXZ289dDNbKV8xUjlNXFlGYG1HQ08mRmZgI3p6enohIVVEUypqb0RVITVQQWxfT09bSlBeOmw0cnI8K11SZk1nVXp6enohISFIYWI/c2FTZU5eWnE7ZV1DODE/R183MjxwZ2leVCJUQWNpPSVHenp6ISFkXWxwJFZxWTl1ITUsTWM2S0FsZVZhO1J0IUk4KCciPTd6enp6ISRZZSMuSzlDQlsjYDNjXjVgaVInKW5rK3I9dSxXMHRtM3UjVztZX3p6eiEhIUglUElJbTxMQTpXUG9YKGhMSGNiJHFqJFMzQktfZWs8Q0xALEIhIT5wY2dBRGVxR09BaGhmTiliMlxTWmQoPi5hTV5sWUooLnp6enp6ISEhIWltUW9WYk5Fc0s2WztLVzRWV0xhUi1DX0EyRUJARkVjZWJHVWsmISElSm1zY0o0NWIoZlM5P2cxJE86LycsODVtRDlyZzFTZSVKYzU8OipDNypPQE9WJFdRJGgmJFlzZmlGWiNjL2FaUmtSUWU3KjAoYVNAJzQwLXA5UWU5cTtdamhtIU05PmwhISFMcEohRkRfZ2xFSj1rJnIyZ0sjXzxjX3I8OHVlUSFANTF0PF04LlxHX19NVD41WExtYzhHYTdKVmUlSmJudVdpKT9CbSpBRDxPV1dHV0BYXFg/M3U2UC1eSmw7ME9kdFlFLVA6Q0M0WXIsP1tddTJvNGEvVGY8VSI4bkgnUV9RPScndFMiQClxZXp6enp6eiEhISE6NTdALyhILEk9MEpebGYxcnJALFpAQi8lbkZhQXU+VnEnTSg0KShdWmdTLzFsTG1CXnJnR2hwMlo5QlB0TiMmRDZEWFYzOEYiYzRISTZKU0E3ISVgcW5BYiJJZ0NrNUAnK0QtSVM9OTVoUjtlP287aUxVVi1SJE4xOXRccFs5X3RiSmtkYUxga2hdbzY0WWI/dW5SZ0dhRDNubkcvZTl0YjBtOWdoJHVNR09ASU1zQWwpb289R2FTJShcYzteMSEmVkc/XidgZ1lZRz1AbGJIOUwnV2NINjNZNXMpcVZuOkYwMkNrRUFUIitdZV4nVWlkZj9DSFliZDAlQkFfRGVScChKPHRdMmI/bzAyWFJYQzpcJW1XTiU+Qy03MSZ0Pl80REZndShdVSgnYWQ9Jmk+VVZJLGJUUUkrSls+U3QnKWRBKy1lQzducS05WUpYJVlDImJsXHohYUJbZGkpY1pqXUtbKDtEQGNhSWowODg8ZmVzVy00VycqQWNlbiNLYUpOSXFhKStcZzwoP2BJUCRcQFxuUGBKNyxGX2w+TkBDLktWSygzSFIvNXQuNylnOjlNMkNKVlZRI1RVQjxsK2I3dFNXZW41cWIzND0sby8wX1IqSURVa2UwYEFHdDk3YVhtdEZbU0pZVEUicmwhO1lWbT1pNFw5QFBKWzRaWSVgJD8tQU1gJ1tvSyopcEhPUDwoKG9ETGZNV1ZOcSYiMSc+aixbTlNfWGNcWERTOGMkbGdvcnJEU2dXW0Zlb2ViaC9IcjI+Xy5yMyYqP0hccElGRVwpdFhFZkRIND8oVSFlNCsySSEzW1hNc15UJE9WLEpjMCFGMG9VR3p6enp6KCg1WlNNbyc2SConS2JbXHNvNy5lTVBTKClnY0s4XCRkZ04iYmxeNEUwS2xmOl0tM2UzZDlcKVBPaExFci9KSFBZPFdqPmhqKSZTYnIlYFYyWjJnc1EsNj5BMipeWGlyOUNycT1DNk1ZI3NVOHJyckMtcG87QCU9I3NVOHJyckMtcG87X0VgQD1AclYsbEgraXJyPTleY0NPYzksbEgraXJyPTleY0UjOnFMJWpcSlBPaExFci9KSFBHTkVlLW8xYCRZTlBATlg1U2IwblEsNj5BMipeWGlyOTwrKF9HQUU2NU9wYDFsRmQxIj9bYyZfNTtebWkhNkVwZFZnX1xSNTtebWkhNkVwZFdxNj0jSUpJK25yNm5VRSEkY0YtU2JaTTlyNm5VRSEkY0YtWDNfJChwWjZAWG8xYCRZTlBATXVqYCRGVDlpKFxIXkgvUGAoKVBrbl9HQUU2NU9wYDFsLy5jQzpYKGFdbmkkRjJdYDsvQUlUSGg/MXQ7TyphUDY8YUlUSGg/MXQ7TyphUDY8ZG9EckJLcS01M0NkbzY4SCxCKGt1cS01M0NkbzY4SCxCKGwuY2lvLXRqYCRGVDlpKFxIXkgtVCNFMEtsZjpdLTNlM2oxZF4sRXVnaUlOQHFcS0EjK0ZhS1lMLSkyOilbcEY0Jj4uJixVcF1nWyJUYEgqY105X0tYPnp6enohJ0BfLVlCVVQzRD5gVSY+K0lFJT9MVCZEZ1xLNCtZUStZJypjQSInbi8/KDpBbTBzSFdvWjJbW2dSNmxMbXJNWFdmKHN0Mi0lIyxjSSgvNlFtWDsjQCVESDEidUdJWCMuajk6aTg8XmNmOEhbIlNiS2M5cjo7dT5GXkEnaEo/Yi4zaEA5STBTVHFgTC5Hb0tnXlgiXj4oS0tRdTMiJFNsXiM3ZjJSRmRAc250I05mKXVUOmduVEEvPEYrQ05VcXFfZV1IKEIya1k6OEBVXzgiO1BZODo0Iz0jXlIpbiVJWjprRidxW1dxKV9UXUdwZT8zcTc/ITxIRVxxTnIuWkJyY3QmWl0hIVI/SGJtSkMxVHFUcGpdPURMKSI1L3JocmdFWk1sUT89cFVoSUNvL2NEYT88KSZzWiZcXzwlSzpYREdlMSgtaGc8MlNjU01hQDxUUjpBJFEvP0dpODxeY2Y4SFsiU2JLYzlyOjt1PkZeQSdoSj9iLjNoQDlJMFNUcWBMLkdvS2deWCJePihLS1F1MyIkU2xeIzdmMlJGZEBzbyFCYnFjOEI5YS5JIkt0IU1vMkVtVSFdaC9tYzQuTiY5N0VWUShnYkJwbjVNN05fWzJ6enohISEiM11VY2EtMWNOSi06U2puPTFZdG1gY1BkYl9sbUw2MCRYM1QyISEhcE1RSWsnNlgxcl1TW19mQE9BXW5sWUBiJ0FISXA2PmFURSJybHp6enohISEsLVEvRkJiVkl0VisxQWo6W1M3WERIMkNyIioybGJ0XjlMVWVZX19XdFEraWs9T1Q0SF9CXXJqLlI0WjI+SUg9QVN1PnMkJExBUHFdOG0lLmNNZWFROFpUQm4oWnFAPG5NREFkIig7W3AtOVlrR10rMUAwTVlpW2E5KD02ZVw7NUolTEpONzdoLSEhISJBRip0Xy1ScTVeN1k7ITROLDZzMTY/JlNFVk5ULk4iVkozJVhvdSwlXCFpRUtYVGVXJnJpYDl1bm5VOSEjR1slaUktMHBdI2hvIiFuRFNELWtSLToqUFZDIkFBQFhTLE4lTjdnMWQkVDYuUT05JEpiOT9NRmFlaDNZZ2A5PkJxWT9DUDQ1YyFzVCM6ZzV6enp6enp6ISErQisoaWUwbycwMmdVbEM7S0c5UCwqVVplcjtWKF5wIjQ/TiQyVFQyalE8cUpNP2ddUEBPaCZNWiNROkBLR2wrbXFGPC9WXzE0YSZjYjBiVWNXOWFnJCYpbCtfLCdxbylNMDw1YSljbT5kNDpOVElxVSEhIS8/OVBsTXMhJEYzUEQ/UzdIYyopKmg4bW8qVmZeJDAwWWghTFtcLXBoX1dlY0piUm9ONmNBTW02PSZOJT9ZL2l1JjlFI0hZcU1UVzghLSoxRFwoTV4hMGxzNk5bN0VSKj5WQyElS2InU2JDclkiTmhYbDhOVkxzcFgnO2ROT2BYLzk+ZWswN3RVaCJsTmwpYykyMjIlVGFEWHA4cGwzb1skS19XZjpFLl5PbmVNbiZbcWUlSV9GJk8pWW9Obk5jclQlVExyTlRNdC8rL2ExLj5IK2hGRiE4RCNNcC9JI1U9RzAkb1BabTYxSGd1QDcqTm1JNnEjMkRwXVxPSVQ3bSVaYzo8REIwQk8oWl06IS9TXTJhXiRcJjZgajRdS0lTVmxqV0IxNXVVOkVhOUVWMEgrUyJpRjw9YGksLyc7ZSg3U3VmMlpyaEQsV08/Y1w+Y1l6JTshWzhNZzhBMTFkMCgycE4iNDgzNTBPOlk2LmQxMm0uI0g+dUI1L2wvIWJkckREMCMkayZAcypAVG43VDt0T3RYQl4xPWsjVC9RYXNYKGZAXThQJTRxIVgpLzlaLWNmYy9QNmIzUVREPFMoNU49JmREbzxFJFFTcGdyQDRcX18mIjFbSyIrU2A9VkpFc3VwTllAInRgR0ZHUCJyckJ1LTwoKGdyNnB1LFpodUVgV3p6enp6enp6enp6enp6IS1gSDo/TFQmRGdcSzQrWzVxaSleIzIraFwrPzs1P2lVMCwwTVlJJF8pZ29BJHRtcjpjSWFLbURkXSxZbkhMZjVDJ0BIN3p6enp6enp6MVl0bWBjUGRiX2xtTDYwXm1YWD1EZUclPW5iKlhcQmEoVmghISEhLjFXc1MnQGInQUhJcDY+YVgicmVFcGI/T1BncVR0cVhPJHFJenp6eiEhISEzUWcwImdkUEw5KU1XLCtZQE9vWG0zVVNqVFkpVkgnL3VqPiFHKCVZbWhyJ3NmVCM+Nl5vIjktaVNEXl0jWk9eKF0qS0ltKCp0TitYXSdgWCE7YlZcUlhhYnVXLDZQaXQqOT9yaCF0ZVZjRnNIPTJePjQ3QTlsZSM/V2I2NVFEJm4vTTVRQ2NhISEhIShfX0FyOVpPQCRfIUtGRVNyJixuUDxjOzBFMmw9LzlNMko6KUptcj0sOzkrWHNNO2I/R281LSgmMCVHWmBGMVU5Xz5qSyhYWUdVLFtvaD1jO0JEXjMkZjkqOCdeQzxCTEddUmUsQVttJiRiciJLXT8yOkBpOk5tJUZYLGA0U0FGM2AiNnE5SlkkTXNmJ3p6enp6enohJD5HbSw4I1JJZnU7byc+ZDkqaT5yTz9AW29DZ1YoIjU3YDspLU41Jy0kQUYva01STl9zcFl0cUFHZFlbcWYjVVFEPGNoRU9BIzo+TyUuPTgmSURXOyZyUmllSXI7QkheWVVKQjZsKC5pJipFYWBSVFtkME5VOi5sTU9oXFdpQFAvZzFsVyxBJjA6c18xTS9ATTQjXysxYz86TUFNbUQlJks9b29pOSUwLV9WWCVFUklKWmdGT2YrZiVlMUZgISEhIS1COFJUTCwyc3ItYShdQlZMUHFPKTw/QD1qMGNlXlJFXW0uTi1AMlxLcnJAPCMtX2IyajBGRiQnY0BPO2RENjooMz9UdGcobFAlUktJW1hrI2liX0pqXE89Yks6XTtbZi1gLmBnTWNYaVNbcG09Zm1iUEVROysyMGdvaTR1OmQxSHVCMUZrY1EvJkRfKE1jcT07Kig/cW1JdEZQdVxRMUphZ1JETyoyWD9wQ21XRVlKSnAqYFZbW2Y0cWUhJWQtK08nIlRsaG4maTUlVEdbPytkM2tdY0IiR1ZJbDcyPCxeQyQ5TWxLJyEtZE1KIyg9U3VKXyU+QlZJTWo6WEFgMCRicTJHME0yaE0/WzY2NlZSR1htRUxtazZaZEZCMl1xdT9dcyEhMV1xWi5NMUYwI1Y/Xkwqa0lmJCY1aWZnXDdsJCdbXmZVQHNQKGRIRDJTYWlwZHNqQTZLNC5qMF9ATmA6alpNJnJsVV9Ccy1pRWw+PW9oWzhmQCUrNlBeUjlXSVE/Plhabl9TWlZGLlQwMFsvUyEyKDVpTWloaGhBND0yVjcwN2NtQE4iIVQlN0pxUnVKOTEvOEgtNEpaZUMiMHBeRWspMFInRk5wQWksSV5vPFVdLUhpVVVUUzZYMj8zXld6enp6enp6enp6enp6eiEhISNlakJmT1g1QUBVdVRsRmdoYUx1cjlJYWA1dTZLNWNcISEkRHNUdFEmI2Y+Sk5QVHJGVGU6L0tmYDNwWWM2QkAsLThVJlkvbnp6enp6enohISRaRVNcOlVPMm9qUUhWNThgIWhHMnFSKUI3YCctZHBFTj42IlgnISNmTDlmQU9XS15OMD1eX1IhOVNiQTZUVmVfZG9lPkBDWy16enp6ejRXUURDanIwOldqblRCYkElVWRtJHEyIkw0aF5SUD0nV1s1b0BZLUkxWTwiIm9mW1A2a2NVZiZuS1Rpcl4oVnJgX1dBL1Y3ZSdlM1dkUiVPVEMsUTxJXzIvQGVFOjxdLygobk5KRHBLKVVwQSd1WltmczQoIzgyZ0cndTZrUFEoVyo7Y05aNm1GXU9yISEhIUA0Qjs4PD5WNGAzLUxEUmI9ZV1lPVxRbk1yJ1o9b0cxWUU/R1gzJytcL2NCRCspY0dhIk5bRDlYWmIjOj4kWyRQW1JCXUgoO21jM2xiQWZDOHBTbG5iT0BuRjIhIWdnZExVMm9VaDg4L2c7Zy0uRi5ec0hTOzdvbiZgbVlTQiQmP2syPDpZaCdqbUYiKz0jSkhIN0YrP2BeVEs/SFEtU3VCJTolLSllKFpfT2RtIjlzZjtmR0RnVlpnbiVOJ1ZZamprV1doYkQna2tGNHM2aFNSUm9lckdnNWcrLzNlO2NlWlp6enp6enp6eiU+aGtBLkheT1VmNjI1aiVtS3UiSDZVWEdLJy11RywwcDJncG9eNCJCPGxoRVZJRkI9OCpXNC88cD8rWVVXQEc+QGwhQ25XNFFbLzRxPzU0bSZERlhSLVRUY0tnKiE3LFJ1ZT5pTFpxPSIkYV8vWT1bbENAUDcrMnJGTDskLDUhXGQxWFFyWEs1J1lMQmFZayIwX19cWS82Zmt1bTInVG9WQ1Qsck1QQCtjVklPazxSLVRUaGYuWzEpeiEhISExNUYxMUlePCxzc2djRWtjaD08WktjKktOLFdrJ3BPV0xwbFExIlU8Ik80QDY7IlloZz4zR2U2PkZJbF1cTFJNIVZbWEYuQVtVWTMmPSYnK0k7PGY/OFdvXDRiWSpzWl9sQTo8NHp6enp6eiEnTTE/WmNTI2phZzJrQXJyRF8tbmNSL1lRXzZBJVxASVtrW0o6PXVGM2VpSSs2QDsvIjNobVJUSzIyRlxXPzxocSUjYDNjWisiSmpfT0RoYm9XNEUzVG1vX083S15TJW1ZM15FSDw1YENbcVNQKmdgTltrSUEnYG8hUzkoNV1iN2tGISdMWm5jUixYUV82QSVcQElba1tKOj11RjNlaUkrNkA7LyIzaG1SVEsyMkZcVz88aHElI2AzY1orIkpqX09EaGJvVzRFM1Rtb19PN0teUyVtWTNeRUg8NWBDW3FTUCpnYE5ba0lBJ2BvIVM5OC82NV08QDtPM1Q8YTFOZkMtIV1SUTdBYyFycj4nMEZGWD5renp6enohISE3Siw1KEMqcWI9aHIkXUByXDdJL2U0cDckT20oRFp1TiEhPEFjJUk9YjJeKihGRCU4Py9ARWVhOG9mM10pITUpLF8xJi0pXDEhIUJwIWpPcTdjPFFdP1BXdVtSJVcvOCYlQ2N1dWZTK1VeRU07KkhWcklOPztwWGlmV3I9ZE1pPyRIOHFmTnRpXSdANDxzR1EmYFM4JW5VNFhGRVkwbWhdOjAhL15DY1hGRVkwbWhdOjAhL05gTG1zVG9VKzQzNEpgUmZWIUk+LXUvZDYuPEZmNzJjaiJGSyQ3SEg1WVI1NE5kUXBxSj8sZzpFLmtZLlo/VztiXSFbPERIbkUrc1kiajYvX2VEenp6eiEhISFUaEcycVIpQjdgJy1kcEdZUkk7TUFCOG1BanAoUVwpImcqOlQhISFIYWJBNlRWZV9kb2U+QENbODE/R3E9MGwkMTReVEZgQWNpPSVHenp6eiFBP1g3TnQiOmNjMTBSYGJxKVkxXy9saGA8KilSWUdBPDJNaDIuY0dWS246WWdLZTBMTV0rcllrJCJmYkFcKXExWzIzaVlOW0JdSk1JcSRsRl01YT80Y3BiKzRjcEFjNHJpZlxbbVRBPFZiMU1XNzYiUGElbyciJ0RPWm82ZjNKNTI8QVJWUllbZF82ISEpJiptQ1A4bF1tQWNVbUciTFFZLkVlMkJvKSNBUkkjR29ESS1SPFNMKS88RkxHSjJXbihzYi1FQiF1J2w+a3VbLWNbXnJFSTVfJHJwQVs/aGthVU5RSDdDJVdSaEFSbEsxNSwpZjg8akYvXScuWjEzdHBQPEhlVWM9JzgnKThsKEMpXzw+ampyX25kay5KcUJaIiZCTUomaWZTTU84ZSpaRi5DIUglYF1lcCY1WW5GSiRYXC1cbFhhNVEkWVtjc0BbTlRmVDpEdURPXWEyPzpmWEpIL05WaFlsTF5oT2ssTDpOPGdJXltJcFhDYlRLZVA1bVNxbExHcGhQLUM8Xz1vdFdTc2RMcyEhIUtmWGtVTyRdL09FI2pnc11GQ1NuJmUuWipBVlEhLzNvaVFdWGJuUkY+cVhdaGBwV3IyZz5RLjdhNVwmNmZSWzYrJ005Wjl0K3JCP1FzZVldXGEvZmtwWlM4YkxAcEZpbCFjPy81MihNWUNvSEVVY05xbUYwTDZwdClzSVxVZi09IiIlS3p6enp6enohISE9YmFEWypwX1E1WyhGYWM0bWVQal01blgkPEwxSShqcjxEPCg3OCcxW3JNNTcjPEZrOkJpMl9FV10oIiJhOTIsY1MxOVFhJCRfdGI5bGNBailfZzJzM2ZgQ0pUZj1faHA+PyFUR2UmXl9DPkgvPEYvPERoTXU9KUA0OSl1b3M9eilMSV9rKT1VbFhkQmFaXm05ZUFyTj41PFZAQi9STDQhc29HcSklUWYnQylLalgqS1pJTiNZLiozK1xlZ1x1LlpvU09LTD5AQmU4M1s8U2IkJz9tcF1fYE10ZEE0NGFRWTUiP2NGNUEmKi85XCNCMzAqPGBgRHUvOU8mOU5FSENLIkhBTWhJKW9aWnNPYT8yVDorLSJOZDRBS09WaWJtYlxSJmRXJF5PIyFHZVQvNyFIKWJNcDFAIm8/enp6enohISEhLE5sak0iXz5hTGQ4J1FgSVh1ZScpV3NBVi0rI1gvUnp6ISEhNF5qayc4ZEI3STx0NStbTiNCWzBuNUs2REo5PFlPYF0iYDQ1Pnp6enp6ISEhIS9tUj9IdSI4ODQ2M1lyUjA5VC5OOCNPT0dLRj1vKkUhISEzMGFyQXRcPyRucXNxQVBkViJRXipaJzxdJWxgZEo6XVdaVjlBISEjXEdXTS9YbFxjMlgzIm5Tb0BsPSMqOCVwZWtTcF9ZWlRHUz0wWiEhISE/QXV1IjRWNmIqbURnXVpRRF9rRkRkYjIrcjJuaWdTU3EkZUB6enp6ISEhbyotWjxYVyVJcy0qbCJPTyFwUU4obWBlTzljJDF0VFZmIl83YyEhXGtRW0oySWtuKGJbW1ljUUJDRW5eRi5bPE0lR2YlPSM6enp6eiEhISNtb0hwIU1bP2UpP1soXUMqPEs1NS0xdF04cERwPiYrXSdBJUpSblJhInIiMSc6VDJXTFpTR1cqXC1nJGVCVStQdUAzRFZpMU00J0Y6PyZlYW9bMVAuUFh1ZDpjaW9qWipRS1tdWFEwRjclZTZCYiNmUDU1LGtpby1dbClvTkw8OjxmNEwxVGBQISEhIltdWGcoYDNcdUkpQyZHXlgyUkBnJzIuOjBlSEtgNzc3c0QjbGhCalpOISptYGosUm5scDcyOG0wOywmbWVvaTNmVDchTV5PYigjNTRFQFp0I1ZLN08nMi5fIzhxVENJZ1NcMC5TRiJ1IiVxcydXTnJyPyJnOjtHRTwiND5SWGM5RyhoKjU9XFttbks8cT9cdE5rQF50ZC1NUD1VMUs7NTsqQDtOUzVlW14uP2QkWykhYjllR0VSLFAkVjJXQ2xdZzk3TmdGJDpMV01RKjV0VzBHKm9TXC5JXzJKJjpxY1NFRiw9aUdIZXEsQz83PSg0QVxEQz1EPywsZ1JqZkFRa2IhISEiSj0ldFIiMWZtQE45aTg6OWBwa2JdIUVYWkpHXHBManBwWlclR1xdSWctY15eUmIydCdyTWAmYFQ6JkhoSidpV1QxWnBhVnE+MDImKG5DLWIkS1heT10iY0JIcT4oPDAoX0Y1L1c8U01rS2c9MTw8ZGgsUElGajFXQEM6OFdtenp6enp6eiEhITgjVj1XS285XjMkJUk/RVBCQCdeZ15rZTFIdVxfOmJ0NVBeMCRSJUIua1IlQ2RVIW4yRVZFRyRjXGVxTE4kPUlXRT9pc2lEdGRmVzxNMkslcElXSlIyQ1NSIiRGcmpeajFRSE1UaldVbiM1OCpLKCYsaVdmZ11YSzJGPFQub0ouQHQ/ZjIsP1k+PCk2ZjItYFZOL0x0WzguVlV0a0shISEjam9kNGdIbC0rbyVUJyc1IUdXYFM/QXVrXWJwJTswTTdvKU5wYms9RnA5WzskKzApXF1fZGt0LFsmSjtcIm9nNkAmQWIiP1JKIkJgOlsqQy5NYE5uZ2VGaDonNkErLm5BcnJEJCw0MmlyKTFbMlklQCkuJVlFSGE0dWhSS2FEWUlcMDU5SDtTdS8mQkkubWJbbiJlYyM/UU00WSNARnU9TEV6enp6enohIjRoMDRfaGg1IS5kWWJLZkg0cy4uc1ZHcldPQiUhU1JNUnp6IylxWnFwYnVpOFs6KTdqTEBdKig/JTdLTUdQYkRTbDAmOmZ6enp6enohIlNFY2xlVmE7UnQhSTgoOGppYWY9VkBVMlpAZU4vLSNZTSJwckVrZkknc1A2JmJYWVJHLmwrJUk9YjJeKihGRCU3JHA5ejlKPEI9bGI5cTAhITxEclk5RTE+STgoNVhwITxDTTA6ZD4kPTkmPSQhJDVhUnJyQW4lRHFKdVVhYS5rXTxlJlFOXCpRJmZBOmdEJ3p6enp6KT1KcWtCOG1BanAoUVwpP3FnPFlcJE8pL3Eia0JpWyI/bEUhISEhJ1JIOmpPMGwkMTReVEZgQWVYOkkzciJ1aGNtVStQdDxiTUk1enp6eiQpZEdZMywuMFBmYCE4XFIhUEw9aCE+ZVJjQW1vc3JyQDVTKzBLJyRNPi9ValUyTE11U24icEdjO0NELlhlUVchQFZOLmBicWgzMVZsbVhxJl9UbDUyLEQkckBhWit1PkdcXkA+R2o2NyZTRDM0QEhiVl5WQmBDNmdOaTs0Y0xXakgxR1RKPyEhISEqUiMlL3VnKXE6UVFMPkZiXz4kTkkuRFRDOmhKb0wpZklJT0ddWzo1LV1AWk91PWMtWzdwVD5pKFEsKS06WCpCVWQ4RTBWWVFzam1fPF9vJlhlZXI8ZXJUVGVuOVo6J1hETkBScDNqNydqYSgmJEohIlc6KEMoLy1UbEUlPGhqWXMzSU5RXFJgQFAkJUNbZSEyXWMoQlN0R2FSbFRSIUJmK28wQCY8XTM4bVxWYztiWERoUUAoZTZlcjxXWztULGEvNVNTciteISdSSjo1dGlZX1ZoYzZNXldCPlo6RCZPXVBbbSFfbVlTc2M1TGxaKXEpcTV0dEFxPkY1TyEhISEqTG1YUXNNMkNHYFEiJzxsaU4yUCdNaldpaCVgRFBtRiV1MlhEYDwsXidOST5naHRlaFoyWjAuYktrRis1YjdmV0ZDZWJUJVgyKl1aXTpKI1FsdWxfTTtuWjZWLE9XIjhcJ243ciZLUSFtODFRZSZ6enp6enp6ISEhc2pQNCZUcGdmYDMqcCFsIT9xSV9GYFJlJlg4RF1KYy9aVUZkdT82QC5IVCoubjBfQ2NwQ11NLW9PNFlNcSRnOk9dO2AqdDNuQiY0PEk6U3RbMF8mXFptMUQvP0o/NWklL0xQT1NGImY6a1opbkJBR1suTXNOaDl0dDtsRTQyQyZcVisrRjhEVWhMa2w7RlEiQl8xWCI7LyJSO05lYycqWCl0OXJmJF07XFtWc01JVT1zLCEpR0FmYDIhUCEhL2c+PmssUFMkYWRDOXEnRztWZVg8ODVxVVJcVGxVdDBoOiY6U29CcUMwPUBYQDQ4VkJUSjo+QjhjYVpzXi01XikjcmE/aFVQLXBIOCRgRExWN0hhJWRQQHIyR081Rk43QCw/RmNXIzFbMGIySFA7N0pNOFw1UXAkOSQxRzpscnJidU46TV1aZVVtYmZmLEt6enp6enohISEpXFpCJjFuSilGMnFAODg+NWF1c0xVcnJAVT9jJSd0Znp6ISEvaVRGb0RqJ2hzRk5BVmtMY1cxUkRKLGg0PVBxS19mdXE+PGkvZ3p6enp6ISEhLDVPYT9iUHJNSkp0S3VMJT8sNShDKnFiPWhyJF09dWIhIS5bbExAdHIqP1AkXjJMOEsuMTNDQSxybGBaKyFUMGxGKUxdQERUISMjYipCUjktTUomJm1KbGM9Qz4/VzA+REk8NUFsJGcxaCFlYzVbTSEhZXBtNU8hIj1wKURtRT9DVDBoVENmUi9xW04iXitLKGs0enp6eiEhISEnSGNiJHFqJFMzQktfZWtTJzBZRkRtLiRkYDUvTV8iK0xTRVIhISElc0gjOCE9Pi5hTV5sWUooL0FtRGRaInRhLVhRaEBkJVJLKjxmenp6ISEhKktpRWhNZjMuXSFWVUlhTFExZ1M8WWA+LjRrRi8kcGhsKXMqZkpzcC5daVMuYTVKI1ZQSThcakU+bU51UDVIKUNSKS5gKDRPbWBRMixGaCYrX2xLTzE5aTFkQnI5O2VEWm5uYyc6QyZBMChRIXJwcGksQk5aMF9SKklwcDxzPTgsO2UhY1lVOHAhISEhOzVGLic6aiRAWDonbmE8XS4oPmFbcjlPbisydFlVKFIvPTs0ckRaUD40ZEIpQlt0Om8yPzFCK2BNb0gwSmdgPzdXYWctYm4jJSY+Rz4sJGtGbCNudUtvXyVaLTRgYTpxaSEsX1AhISEhP2hMaj4yUUFzSHU8aUYvWWMrSVhtTTUncWY6PTM8N3FKJURUWzhYYXBuNF1zUjdWV3BUPGJYXCI7V1RkXEdUPW05N08kLz9lTzNDVm80TXNAVTNESFQkcWQuVT02YXNLKzFrcCUvZkE4JmwmLCEubSFgJF1ZR1EhJHFtRXFqbjReZkAmYyNHUT9tWl1qISEhIyQlVG81WHFkIjJfJ2pfKmAyUjYkRlNXOktTJ1swS29IMkZHQSJFUz5CTGxTS01WNTlLI2IxREJfQ247NyFFN2NaVT8tYCNTbl8lUDZES1UqTipoTSFbbC8iPl5vWy1BKy5pTWwrQWdTaU8zW1Eqb0osZlFMenp6enp6ITsmLDk5cHQ4ZG8qOkZoZks2VXVfXSpvazMtdUckSEU0JllycjxZYzFZISlNYkZxP149J1NUazFLQEZNZDFJPkFiLy9FQkUlNmhMT1BBPklUKlBBcnA4bDlicDhxU3RWXz47U0ZBXUViblQoVCQ7cVcqZ2RIUytLcWljZEBaRyRyYk1ERkhAYzZrYG83NW85XUQpKGUuUnJoTSRiXHU7JGhJN19nUkhwMGN6IVRXS085cDk4WDA5PVZOcltzXWY/JUtDQjAmMyVkVCNkZHJtQWFmNE0hXlQ3MHVuX2tBQHM+O2ZDXT5cYytmMUldclxzUCdsP3UkcD4kPk07XVUhXGZjTFhAOWpfWzE5OlRjLDtqXzwpcnI8aXBYTk1dL0RWaG9ZWyEzZF5ObGtmVCtzWEI7K2Q7SFJNPj5JNFtHRS0pQWxEXiIqPzNfVVlbJFNbX1YhYj9UOCc/MldpayVNK3NKXUB6enp6enp6IUJdZDVbNWBTRSJfLEdTP1c5YSNtRitKSTsuRj0tTlAyUyIhKUhyIlNmVz89QzdnVnVjQ09ocDRULSZHNTllLj01YkplQl5Mcj1vVT11Tys9UyZHPmNPVzYvWzg0bEtrPjNRMHAkXlNta05LQFJxJWMqV2htOjVIZDs7aFEvOiNfUCFCa2YnR145LTtXZFtCdDNkOXJbb0NRNmRyLzJWPSFlPSdRckxQJ1pNZVxsSEEnVVlCND9XUVhlTlk3dVNOcmhdZj10c1JUOygmO2pCMiNPSWE4Tmg3Qz5xNFowK3EzIlNNNjppVEtGNVdWSTtsbC8vaGJjZD9ULm5nbyg5JDM8OzpwMzpsWi9aTzdnTyNrbHRVTm9VSnJbJScvMFtfc043QHJIbUdjVENKOzBOYUxXNCpALWIlbVJEW0VTOzZKSjVnIXp6enp6eiNCcUJibWZFO1teUllhajtsMyJMaD8zSkBJbFxBXSEhISEkIlFeKlonPF0lbGBkSjppbT1LQTVwJ0s+WCY3W25ZVE4pTychISEhWE8hT11dQUByciZsNVRRPTs0KHJNUlRtXFdERDc+UScxWyw1UDw4QjUzci89RmJvP2UucFsyXmVkLVgza20vSSgsbihjO1RVIlk6YGcmRCY4I2xwTzBxakpvKTQmR2plNU9wbzExZio9WVUlcmtdakZUV0VEZ3BpKnI9Nz1BMCRqSFVyUVEjUCpONEVtVEQ5VWskLz1ASlU0NVA8JidNPFohJTFdK2plSlMqZmZoPXVEYjAnYD0sPWNMWzdzWSZCNSFhNVIsMzZNX0xuS116enp6eiUvNXNwWmM3YXBxWylvJVlVNF89Z1koVVNJIXBcRT4hWnEzISEhISQ5Xy1wOChxIlNVP2UzazFDPFg1KklMS0RscEZraUsubDc1K3p6eiEhISFvVDtoNHE9aXRqIzJpLjokKy5KNTZpYypScDNkUE1XZG9XSE5EVSpaUG1GMGBWOks0JkEjO2VWJ0xxSDcib1RmbFc2dDdsP2YsKEVhSWM0Yi1TIVBNcTtcUVY8RjBwK21HOWs/YzNBKyRYYXRoMSgoam0pK2A+RXRjV1p1Mk9oJVtnYmAuKyI6NCtJOzIhIT5wY19yPGR0cE9pN25fLiJrJlNFRHVsMEcsJTo+cW88LGRkMWkibCJKc2dtJkknY1JiYEBzR2BWUjZpcyUtXSM4J3RbUmo3KigwTiVWUTxEPEFCakVQdCNgbUhyVmRuPDo1ISEhIVRyX0MiSSIjbzgjT05WXT0oKj1RS2A5KCthXlBCYTNNakVkMDQ3PG5fNFZKcD5BM1hmLSdSU1NLKnUlaVchL04rUU9SVi4tanIsPUhqVms8UVdhY14vQFZOSSFtKCNWZEZBS19RMUs/Ny1lcG1DY2lDQ1NpT210bCRwbik6IidSU1NLKnUlaVchL05DSS9ZNlAtUVZIU3FLLitGaFlTaUg+Tih0RylOTV5CaDJpWmsnSFI6ZyNrck1yXzszYlpwPExnKjliSFJDUCFsUmM4X2RSQ1xEVWxHX0M3XTkhYCdlTiIxXSQ2PmNpPSVHJ3QpNFhMNjgsZ1s9OTliZlZbTHNXJmBNYyxaLiVcZzo9dVNYYHVsVlNvZEFCNzVgTzdNXjwsUDw0ay9NLT8sLydiNClpZFZLJTFkZ1FoLlwnMzQ8QUk0JWhQZGt0KFFkQ2RFayFqOVFubClLWCtVOk9zKldMXW41Mk9LZ0J6enp6enohISF0dU90UXFrRUMzXU8yNGRwXkRiOSZXQFc9OEllK01oVGwmLTgkaC1FcmFhJkdnaSczJVgwYTVmRCFPMD5gcVw9b3RtOyloY1tvQz5RcWw5PiNLOl1AKWVSLlcwdFVWZWgzbEFCMWNiTkZTc2ZZVic2QDtyWWxmV2YlRVtxYUkpQFtedS0sQTxxdTNbLGIvMkxQUSohISEhQDRCOzdxPlcoOzMtTTgtaj4sI2ZDRWs4ITZCVm0jIlJAMz5yS2xIVW5qKXMzLGxCb11hPkxoLHNudUsraVhaXEUzaDpVUjMmUUVvRzlaOF9MOyk6P0s8NWBVNT5eVVxqcnIrLXJxRjtNJ1AxPEsjSCZCIW9JQkZzdCEpSDtmOU1fW1VsXnBpJzQyX1sxeisnXWorJldPY19fO09aY2AqdENPKEA+OzU3K0dTY1ZLUmkyTSE6PXFraCR0Iy4oLEJlWFJASW5JTk1KSDBBYVw1bG5wU1ZiZCx1TTxDXyVyTT0sUWIyX0RzZDRhY11tJlxjY2AoTUJJY084bzdcenp6enp6enp6enp6enohISE3Siw1KEMqcWI9aHIkXUByXDdJL2U0cDckT20oRFp1TiEhPEFjJUk9YjJeKihGRCU4Py9ARWVhOG9mM10pITUpLF8xJi0pXDF6enp6enp6ISE+Q0ZtSGpBOl4tOUReL00lNCJub2pfT2QsLHBSNSpoOjZmRGttTyE3Tyc9XkJROHFxajZ1YSdxMkhdPkAzIXVZNVFRP2dCdTEqenp6ISEhITpeQjhRbjA4V3EuYXUkN0IwJTVUakdJaDomOyw3KS0lbzVwQnIiMiM0N2ZOSUo8QUUyNklKI2ZhQmZRWlxgOjNwY19vNFdqSFFDOTNeS25KdTFZOyw7bF0ob0U8Pjxibzs3Y1I4Izc2XS1cNlFLREBaM0phJFlHOzQvUSFIY0RNaG1QVk8zREk2cHMqOiEhISFWKyJLTiJJQkdPb1F0JWdvaW5lW0Nycj9ITVxbRCRFVlJrYzRmNDI7PDtuVlNwPmkscCwuclVgXyZgWzI7SE4lOSVeRENwPTRWX0BEWlZPU0ZHUGVkdCVlVz1OSV04MktIVTRDQSEhISEnYWxMNTM2ME9yI0Q+c1YwWy5ST0E/aTImPTpXQmpDITtmckV6ISEhISNcVHIuNWUqSjA2ZWBXP0tMbmM8SEktYi47VTVjLltJTzcuYV5CXCNfRVJpSENoMk1LQ2hHVyxoVVBaVzFiamxdMldOLmtcKydtdU45ajtJalUqbEYqckVFODg8PjMuL0RxTSpwZidaXFM/KDgzJDdFXWdKMjpHTkExc0MmODgycFNMenp6enohISEsVGQySEBRZXA9NHBWUjY9NF1PIyouXSwnZV0mXmE5cGJ1SVBOMXJmLENmYiNAS1wuLT1Ba0RLLSRgXixxWzxcUlNKXTlxVmpSQDVoXEBYO1xkcTxGaD1CQWVXNlppKFE3RWJ1aG5ZU3E6UWk5OCRoZkdkXCplSi0ldHA8P1Q1RCxqOVJia0I5KVoqIjRLXkVxaTZLdTtzaENmPlp1RikvPUgySkl1Tic3NFZicnJCSmdXSywncEFuSCxCeiE/PSszbl45NXU3bGlfKkBjUWdNMTo5OXJvdCVfVHFcL2MpITkuIy0nWlhhJj0lQitFNTMzcyxncDtbJiprXUEoa0RATT5ZdVJtKyM/OlptazFxb0ZyUTk+QFQrPT41V3VrMSQzTSlxajBxJG0+TjRZKG4wdDFjZyw1b1hVZV5aZyhuOiU+Ik0hLCg1V0xCXHJBbkdcUUFwW204eiElLyFwcldJTl5MO1MhbT01YGVtaGtRYStANHAlJ01mVHRpV1s5bDc7PGlOQ2NNX2YnQ0U+ci0kKFpANDtscW9QJXQtKnRoPjtuYVsuSXJIVTQjZWMpYm0+RmVUYl9BSEA3XiYlODkyRidbbVgrKj4mbjkhWFdvJ2kpZVJuQD0qaEw5KmBfYFokLy5PRTQyYjBfSHM2a3FbcU0hXFhvRzhXZEdPTDcuIy1nLy9BbVNiT0hJITU3TUJBS1opVEVjMjBHNms+PzhXVU0/Y3FtPjZcUCddKGM1Ll1zMD1wZWUsPltVM3E+ckBhUj0yPEZVaWwwXkVPZVJIKWVXZD8oQDxCRXVdPE9TN3B6enp6enp6enp6enp6eiEhISEoRzlaX0shVyxVK1NJOj9TVkZCaC0iODg0NjNZclAzISEhKihqVUxQaVkuYyR1STE4bTtKb1pWPiQuaU1xQG01WD88PWYtMXp6enp6enohISEqYWpSKT0oVHRXXy1JNFp1VlQoNyd1R2dQPWlANlUhPT4xYGZUISEoSjFbX0UidT8yS3VdW00+NzsvbURcOCg5W1ZacVYpQSV6enohISEhIj9sWGBCQyVhQCNnVWNFI1l0U2JVTCpDVGtgOkwqPWwoOlRqIzxvKkxvUUEpS0xZU04zSFxwYSMnWEZoczcyTEVYUmVzZy9HMi5OMyU3Si5kNDgpQT87XWNIRls3aFZcJXRoXk9fO1Q0WEIrSkotMlhPX0MyUHVAR05NN1VZK3NJJ1x6KVJHXF4mTytlJCszYT1tL2E5YTVqJDBkMFpWPVkoOiRbcCpTajJTPS5dYDZrJl9hOnNXaUUocldoc08yQjZmbzlrJTI6ZkVVYXM8RDhqKldDcWZqLEVoLC0oQC1sRTNvTi1LUjQyInVOLCopdWFwUHVcNnohLFM2InJyQF1uTT41Wlpycj9oMTxKTW4jITVdNzdyK2c2TiE0QV9UeiEhISErbkUmP0A6VSdnR3JLUUVwLUNnaS85aiE4N2RCdG07Oz44ZGo1Ol51XmlMNmU5LzNVMV42aCdabSc2bU5HbCk6PzZVKEwyUSkvW09aQlhgaG0tPjtaMU1SbUpuSnVKb1FPMDB1REhPR19DS3VEXUZlYl81S105X2BBVk9GNiZSJUsqWm5jL1hpenp6enpJO2tSI3BxMFYuL2YpXlRwWzswIW05NnRtZVEkYGNtMWRLLzlbKGdQYjkjYCxfJF81OGRmLDI8PGMtWEJSQFU6SDxJR1BSVjVgMFhgQT9LPFJcaS4uMlgtJFNDUTpkOyNiOEtPKWk9RisiaCQyWio6MCFzSEI1X2QxJmg2UFdbST42NFwoKU9JXnRIN2h1RWBXISEoJTZSQjpLbispJmxJV1JNY0BbPWxDb11laS10NTVpVXIyUTJZaVdoLCVIIS4hOUJBYVNYNUwnb0hSMGoxKVpNUkEsUkA0YksqclZPIT43Q2pxLWxEZUw1JklRbkg3RTAuZig6QkQqQmlXcVBSRU1WMU40MDByNyteKk5YLGtIKV8+KDpCR1wwO1FpcFJHImhCbSNjP0R1MWZEMCMiNzBfZnMvaFZLMHA5XzMsTW40KiN1Z0c6WT5fdUtjOyEhISI5NSMmWzRia1NaTFdQSFB0X2RsanVWV01UUFZFST9dNFZtN0xNMnBoJGUkZjNaOV9OPF9Oc3JCakhjLkxLSl5XOCEmKUFzYldyNGZ0VTNpR2hFVSddLjEiQXVRZkRcVmRiZXUoSEtLTUg+XDdfTmlIPSVsKCo2VjQqYDhXOEQsM0NCSWAsaShfW3F0RkQqWElSXl5nb0tVLipIVz5QNls5M3BjRFMvXkJKQUEzLXVGOUMxc0loVS1KWVhdbFE9aG4sTkdDbU5VbF1PJ18mSklbQVBERFhXLnI7Nz8jW204a0AralYtPEkxWGQkOnFvOC0rXiwjM0Q0UTIlKmBUYD9MTmRpa1FRcVVMOmJZYTgoMVsvZFVybkMraTlNQlVdUSlzZExuPFlXYWVxXmYkP2dgL1Rpc1FULWI0M3FWOXEuVnVSXSE/VzxtX1hQbENQTTk8TEVFJDJGajUjXWAuc05PXzhuaFwxR1ooRyY2LmhnbDgyIlVdMT1dVCIoME9SJGE3ZF5dND83enp6eiEmTj1nMVc+aUo7ZENBKGVGY2E+RFxGIjJjKSpfWChfRyQtZGJKKCRcQ0RXUFxgPnMmZ2ZzTl9lSy08UWo5PlpBbiRLUD5yVSlPNU1mKmVOWydwaExtUFJMbURLdTg1TjtNdW9gUDZiWjs8JD8lNmdaSkVeTyhyO2luTCVpP21AbDQ5NiJuLGomQzkza0UsUjZFR3NebzwtWWs3TztKOExePShlQHBVSmBwL1wwcStkYkooJFxDRFdQXGA8cXIxW2hdWyhCKllZN3VNODEmJSZlXXJVKU81TWYqZUBKO2pCbS9dR0pPTkRcXWlTalZsc2BQNmJaOzwkPyU1W1lnI3FiKHBJaFclUltbY2BiTDk2Im4saiZDOTNrRSRNZGNiQGlfPlBHWVgqXEZxYDUxODRqcFVKYHAvXDBwSCFdMDtQW2hlcjEyK05SQkduNzlrKEIqWVk3dU04MSFKJC4rbTRIO2xIXTpuXmdSXmUiL11HSk9ORFxdaVNqNlsuNTVSdW1EcjBNUkdkY2RzcWIocEloVyVSW1tjYF9oI2deNjVnZnNOX2VLLTxRaj9EI0k+UEdZWCpcRnFgInAtUlk2YzBCWEMkX1NmRGs/MG9xXnAiWEQ7QjFrUy8kNTdkQ2RGUV1pLGs+by5fP0xfdUtjO3p6eiEhIiVwTXE+VEhtNUZyYy9oS2hkKFUmJm9nMjZjTz5aXnQrISI5TyoybT8mZ3BrJ0lWMilEWklhckF0XD8kbnFzcUFPb2E1UUNjYXp6enp6enohIkFVY1wkTykvcSJrQmlbJzFtKGFrUE0vNltYPDhxSD8xIz9pVTAsIiYvOj5yInVoY21VK1B0PGJmamhEMTJtc11EIXVFQ2IlPUJ6enohIV5PKmg4PztLOiNgbGlPQjYyWT1fNFZJXSQyais0KiorSjlRUXRZJTkoTkc0clVvc09BJWkoZ2JiITpfYD85I05KXzQoZTwqSmtGIzxgLz1AaT5GNFs1NFw/VW4/cSpYJUlBWiJpKlExZy4uUjJYT19HLkFEXTBCVmx0M0xrZFlhISEhcWhQZVJkKUw3Qkk0RjZhVyZSQFgyJ1pjZE5KUkpQcSg6SCNBSU8lVSdiSipHWGxRLzBXbUx0KGAjLmZHQGdwWXQ9OFZQOi5Nb01yUmAwZjxoKFdyRSZtYCk2QnBYMjUvOEczKnBjZjY2UCg9KXRtTFdpRShDUlxrRG5BXStRSyEhISE8LV4rSzBpPFEqKzI3TlNjZz0rUzxeY15wNWUhdCF0XGBTJG1WWyZQclpPLz5FMEBgYkgoP2diUFNaLkk2cnI9SEwtW19mcEludCRVYiRtS2MyVj9OTW5zZzxqNGkyW3RNIj44LFZaX0tGRTFiOV40UDJSRWU9SDAjJmNGbDBJanAzRkI3LVRbSW50JFViJG1LYzJWP05NbnNnPGo0aTJbdE0iPkdUTFYtWEdwQ0soU1MtRykpXDl1bUNLc19gIz4sJ1FpLl0vJm5cX2BwRmhEXmdeTnNsK0l6KCYsbytMNkpJRE5DTDp1RTptLnBDKzVWP2JxczkrWENPaSFOZlZBRTpYZGNLY2dXL19mPTpAZ3ImNTlLQEBMdEhaImZlL2dPN1pTSEtSXCFgNm0lT1hsSDknSW5OI15XYDtvYEA1MGNrNTdyRmNmcmk9QiU8ZWQyWF1ISEE3PEhibTw2ckdxJyouZS16enp6eixfbVRzIlx1ZVguK1ZScyNKUU1JWTVRQWJiJ0dpT29ac01rW2JXYildSkhyWTUrPz9uUEJSOWc0dFopOEUiciVPMkZpQGZESiM5aUErK001b05TMipVVWpJNGAtPTIubStIImlJamlKcSUkTHBaak9jT3IvQURAJ1JsR2ExVU09SjosQTwtbnAhNj4pYT8tY1gnW21jRiZKVzAjJko8RCRjaT0lRyEiaUckaF07XjlFIzg6aFVwNkQlR2U3MGxSJmE1L2k5XHU5SF90N3UvbGBwQVA+KGFgLTNJRUFmXTBAKGJnUTRyRklrRj1LKj9JOF9cNmUiOTktXFpxTTpPKVttXDo1V2Y/a0wtPVltNXohITo2UChOQWg6QmVDLS5vYVhvW19lL185STs1OEhdWWAwOidaPileTURwP1tCcWZnLk08VUo8aGw3a1paRkJXUkVQRC9VMiwlUGtqcyVDRFE+KExlJywvJVdCNkpIU15KJmU7ZUoxSnBhJW9DWCZOMlkoXkxuNDhbdSYjWVVAIkdXNzxcKXI8cVAhO2Bwa2NIWXFRXV16TnI2MFcoSmJWdSRGTzMvX1VKM1tRSiVocmQyYjREMSI0cUBfZkBlYFplT2JsQHF0UDpSXSpCaC8jSSRcUkcrWlEyT0wqPGpjSGc4KEJRZTBZN25rYSsrakJMRiNFLUo0I0Q4P1QiSWNQJl8wKyxpMUVhPjtaUkFZenp6eiEhISU+ZmdpL0g1T14pc1licjVWQUtKNmVyckJqMGsuaiZEenp6eiEhISpwbyUzZFhvaFkjNWVDbXI8YmRoTmclPTRySERzRDBpMV1STFV6enohITFvc11tSVBEZHI0RDlpbWQ0VEhNO3NnVlZmW1FgSUlwZyE1VVpfSE5gWjxMYllNaDtgZUJXVHRRJiNmPkpOUFRyOFxvenp6enp6enohNyxwUEhUWXRbTzBHNkw5Ki9iPVNcOlVPMm9qUUhWNSttOHoxc1tiV18yREJEam8nJU1BdXMxQWZBT1dLXk4wPV5fUXVLLXp6eiJjSUM+aU4tXywoIiZ0YnAqLSRlO0ZNRyZrLE5VKWVmL1A7ZEY3JzJSY2pcRk5sNCQ/XXUsMGtSRGw4Pi5ES0oxYXRSbzBtVixgITdyWTI0ZFhTRiFWT2lnPVZKIS9JWnI5WzU7YWhEPjF0KkMzNyEoZyFvRGVqayEsS2tXPlg+ajo6KHVkZFArLl1iUXFcWixBW0tbImNHXDxKJ1FlTjs0WjFSJTlXR106SEw8IWlFdE5sXz0iYD0zQ1RiN0hIKWRqN2slOSEmVWkubzgsUTNrczJWc1A9bicsIUlSdTQ9UmsxQDoqMG0uP2gtWVZgOU9WKClaOU1BT0g3YzQ3SHp6IU0rME8/SypxXWBAUldcZ1QnVyFDdStNXWxWcGxuRmkuOy5FaDBnY08lZzNOTkQyU0AkM0s7WD1LRlxGI0BlWCldZ19pXnFmTFolRWYmWUFrYy1TIVUzZz9ZQFVFKU9qOkIxUmVKcEVWVU42aDhlWD5bRE1DaDZCVlJfQVtCPVpAK2MoNChebEEyNFBQIUIhSSEkRjNSclllUCdmNjAlPj1iYHEzaCJsO2BhZWtcJUNEZmZuKkY3KlxrQm8nW0VoPW1BTkVRdSNgL1lidXFHLmhBbCspXFgyLjguPio+VUBEb1w2UkVWZUUsSnA/UlImbTAtMURlby1vN25zbjtKUTAmaXNaJkhOVlk3SEdzPSdaVWpXYkpLJHJET0A+VnVRZXR6enohISEhLVFcSlprNGxSNl9fLmRhTExbTVtiPEYyLSpdZ1tqIWxFNDJPUGdeYFE2dU9qbW5NNldMKkxnWi4+ZCNdcWg4U0RvR0E0Qz1aImZpcFxRci5AO1xAdVZRJ2NTdWk3OC1kXGg1R01gTjJQKWJcPHM6QjhWTiZSbGJecFU0NEFYa0dSakpIMTQzK0BEWTJNakJPT2goZDBPNmdBQEcua01lMzI3YjlAUlZCX1hUXlA2cHNtImdJWExoNEAlISEhIVFjOCdBVSxONEIzYFRoOi1qQWpHJFNlRFEtOyYvKW85TVtTJjVPQzZfZmIkJG0kb2FHQSlLOHEvZElVdU9FbT1QW1I4R2cmcGg/K2VqVy45S1xHVmBccjJSPWhVOTFJdDFXTnVdNE5BLCZqdUJFT1hDYHNMPSlbIS48N1A5c2xDSSg6UkhwOS9IVFhnTD1tIUhMMztsZFNFPzNkUU4zQFxJNDdiI04qaUBhKjRdS2xOJktnMHRiZm0/PXohISEhIjBLQlU0ZW80XltnYi4tZV4kc1hTayUmX0tbPS5KUlREXldHaTBqNm80XT1LIldNYUVZck1IUWtXMmM4UVdbRSVZU3NUXSlMdVpTJk5nMCY5LCxbcnJIc0QpYWpqcTAtRy5Ia1hmVmU5PiE1dGUwLlpWJyFXcDAwMThEaklKISQhXi9ELjUmJF9yPDdGRzBTYFFNakVcKy5dMGRoMk9LbCdcPHVXKCFGL201MyQhQCMzZ1w3XE1UJ2AmNE8zVG4kJyItNi8kbG41TVBwI2trKSNcPk0yQ0pWazxeZCs9X1lPPD0pIjFKU0JwXEhAbCFDbldPSTMwOz8jKjZwL01kNWA6Y2ttV3JuRVEvQyZLOVkmQGlyS2YuYzJtbkhsKGdpa1xsRUFpJTFvbEtCUywtI3U7aTBdb0FIMm1wRnp6eiEhISMvbSVgLjUrOD9PdGZNZFtmWkImMW5KKUYycT9sYm0/enp6eiEhL3NCQ100Y2hWdFkscEQoQEpVPmRhUzMjLyp0NFwrTVlFUksqPGZ6enohISlISj9HNThdQnQqXS1FR0JVOl1tSVBEZHI0RDlpa1BObyErOz1qXW4xQ1lgIy1nb1dMXjdnOnU5I0xsZiY9Y2QqckRzenp6enp6enohLCZzOF1xLiY+YTRPMWFWMUNHWjo+WDs4KXJwOTRkYUFNLXopSj5BZmk1TWIzRXJOTWFaVzpZXENbYmZgaG1uNUBAOUs2J3p6ISEhISRESzhNMlheIktYaD9PQEZaLyUwP1pZWGV0MUhTJCtsJ1VWZnJyPz4vN2MwRVRUIm4kOzczIi9dIjV1LC1kaVhBNUgvPjZQRUw8Pj8pY3BlKmhmNiVjb15sJzw8NiVKVz5mVT8kJko1Vl43YVYyOSEhIUVATy4tJ2clPHUkRmxBRmw5cCNXZjZhIk9vLERcbUNOb05SPGVAT0tXI3BNI3E6SjZda2FPN2wpXi8zXGo0WW5iZlVDJiRSIydcMkdjQGRCKExlXnIkQ0MzazMnQ09lbUVBZ1tMNSkxKjBXXTJlMmRxaXRFdUVpSW8yV2k9aWVJTW5RJEosZlFMenohI2xUOFk3Um1WZHUqcnJVUlNgLGJOYzpzQ3MoUVVxajstXCwvMClvRCFiSXRMNTkjbU1taSotVUBqdT5cU2dMYDw+QUZvYERKQSY5SVpyTT5fS1ZIKVNedFxWUW9scFNDXkowMyxQT3BsRkRWQF1cIS1lOWNyU1sjVUQpKCEhISJONT8mU1ZQRVRiWi1QOCxYMixTcU1HLVJFLzBjXHFtV2JNKzVKJCtWLSEuJC1hVThsc21cWT87SjZmSG0/VXBDUEIxdWtaMj1oQFpxcEMjQnREV0g8JTwoLVg9XVFVPC01MEMuYCpkTmRmRiN0Kz1gbyhoT2lVSV1IWSsiUlNCclhEUyFSVWxJenp6ISEhIWtjOXNjJU5DVCY3YDE6JWFoXj85SGheWkx1VmtZJlNSSlpBWWduSjtRNThwS2k7X11IJTM+Om00bHBpUDVgIW9rJGszPEB0XiUyKGFmXWczKFddYT4lQV1qIl4+cjsxcTlbc0c3eiI3a1BxPklSVlVQdUMqY2A2RDpeNCUpSlpiZkRwNjpTLVpPQjJAUS9tLjIwMyJkYFchOiMjRUY6PTJjanJyQzllbTFDQFsxRChYQmBvUyNVXVtyJ0ZrMnBCKERXMS8mL0NlTWRec3VMVFJzWSJDVU9CYk4+PUAiK1ddSGpsazpEV1M8USVUMUZJbnI/Olk7Z1NIP1puZz5vPElkZEc2MUpCdCRsNjJFUTUibT5bbUZ6eiEhISxKZSUqYjpWbUcvIkgnNzI/QCdeZ2ZsPkwsImdadFREU3IpcjFHW2J0RzNbSkRZUytzT1tuU15jblI4RmFoZyIkUCNCL1JOUzVDOXBxNCcsNVAvKSJTdCliYkFAXHVqWTgjZTVHV0U2aGJIb2dWQWtIXjpSdExyN2IpOzJNVjgqOiRVUCc9Vj1aYChZOlRnLiIkPTRfcDEiIz1kV286N2ZDSj5UUEFlOWdyPiZmc3IwKGgvVitKMVhZXmE5UShSV2FUKTtAISs6MXJpSnBSTT5tbEo7ZnFfJyw5ZnExU25XP0w+R1xiXEknaD0iSGxEY3BUSFJFTmRuLSkqblNMcENHXWlVOUQzZUlgPihHTllcUlAlTiNvNGo7c0NTbEdtV10kNjlmVSVFIj88NWhuX3NwQWxIN1AxXVs7VClXUUtFLlEyTXVzcVwoPE1nU1xKRlkxWSNJdTc4a1xuYGFRK2gvNyVUYDAjY1UwLUg0LTBoNmhFb1ZScSEiNCYlUyNvWWVcZmdCNkw6enp6ISEhISxObGpNIl8+YUxkOCdRYElYdWUnKVdzQVYtKyNYL1J6enp6ISEhITtCOXA8amY7YT1EcmhlLE08YjlIXW44JFE9XTczYW49ZUdgcHp6eiEhIU1zN0kvZTRwNyRPbShEYG9CTXE+VEhtNUZyYy9oP3UmISFXYlApcVpOREhwTl9mKU9dPV9qVUxQaVkuYyR1STE4SEErOTJCQXp6enp6enohIVtlbGdZKFVTSSFwXEU+JClHJGpSKT0oVHRXXy1JNFpTTFlRK1knIU4oLVpJTEtEbHBGa2lLLmxDcERbX0UidT8yS3VdW00+NTJ6eiEhISEkSS5ESUIkJWgrJ1FjPFQ9Pm01Lihgb0Y8ZWdELGFMMVtbLCUmSz1TOzJuO3FyMXJmTCNkb0I/I2QoZ3R1SWw3NitIUmpQLFQua0tcP2heazhqMTRhZUQ/PT9tbzNfNnRcKVkkaiNDZVcyIS4tNUY0LmUzXWkkTHNEMj8qWicudDBSUDBSKitxcFRoOWdcYXApRSFiLFdMRWFyayU/KUouTENkImlqNyljYidjNmcsOlgpPGNfQGEmYSY0ZSdJaihkcEwsKTJaUlkkcjE1al1qOlA6LmRePEA+Y3I6PmxgK1EzV2RZaFJSPD86Rnp6eiFNPTxRTT49JVVbSSgobFFmMkVwQXVkZkpuVFpPZHBIITowbEFiTiNEKjZML1U3Lmcicio/bjI9OW80cWhwJFotYjI4NkJiVDZXNXJUcFpdbVgya2pKPS5HVWZEWSc8cSFOT0docCRaLWIyODZCYlRYSiZPbCtFNWhURmA5a0tGdEVmRFknPHEhTk9IKWg9PXNyN0NvNlhuXz0zX0UyYyNMYz5rbENZUDtpJGA5W0FgKyFPWzdQPDROY2BTXzFFZ1lRNURwNSxLNFA2TVgzZGpkJVpHNkc/enp6ISEhIShHOVh0OnBmdXRlTTlXQCZvLElxN2VDVE1uOzJGV3JJWWFRV05kTzc+NDghTShcbG4uTVtWYi1ZJHBKJEtpRHBtLEtZcSNrZVhKSmdZJi0pXFZEYTxANCw2M2w2NkNgRypXNE9mbSZnJ05JKTReYkopOD8qTnAiVjBcLVw7VGMlIlRtaGk/bUQqVzRPZm0mZydOSSk2aFFSMnU0V3JUcFpdbVgyay5jJSJUbWhpP21EK2guaUBocCRaLWIyODZCYlY1JjZvITZiK3JyPklFZGVRWTBOQVlKaDRQWE5tZW1VTT8/KyZGJS1eZElfLmRjUVkzXWEtOFwsWkwvenohISEiOTovO2pHY2FaLS9paWg7MFonc2M2Zyw/b11ba0RxVENUXG8xPmMrWkA+aFlzUldjc0pbbSRRWSNyN0NvNlhuXz0zX0FlI24qVzRPZm0mZydOSSk0XmJKKTg/Kk5wIlYwXC1cO1RjJSJUbWhpP21EKlc0T2ZtJmcnTkkpNmhRUjJ1NFdyVHBaXW1YMmsuYyUiVG1oaT9tRCtoLmlAaHAkWi1iMjg2QmJUa15cR187MUwxS1hPPkFiblRdMmliWEJmXW0+NlVBX2AhRVJmLEprPTdHRFxnRFdscDVaLS9CM2tRPHp6eiEhISEjQEdzNGM/YzFpPWZfXGlWWDE/VlApdTtLSl48c0VzK2xFWmhocCRaLWIyODZCYlQ2VzVyVHBaXW1YMmtqSj0uR1VmRFknPHEhTk9HaHAkWi1iMjg2QmJUWEomT2wrRTVoVEZgOWtLRnRFZkRZJzxxIU5PSCloPT1zcjdDbzZYbl89M187RUxlaFRGYDlrS0cqWiQnRixpSik4PypOcCJWLHI3Q282WG5fPTNfQWUjbipXNE9mbSZnJ05JKTReYkopOD8qTnAiVjBcLVw7VGMlIlRtaGk/bUQqVzRPZm0mZydOSSk2aFFSMnU0V3JUcFpdbVgyay5jJSJUbWhpP21EK2guaUBocCRaLWIyODZCYlQ2VzVyVHBaXW1YMmtqSj0uR1VmRFknPHEhTk9HaHAkWi1iMjg2QmJUWEomT2wrRTVoVEZgOWtLRnRFZkRZJzxxIU5PSCloPT1zcjdDbzZYbl89M187RUxlaFRGYDlrS0cqWiQnRixpSik4PypOcCJWLHI3Q282WG5fPTNfQWUjZ2doR2tRR0RTRj9icXM5QCg2I09SclFHKDtCIVppUGJkZ0dzVm4jYT9yOCJzRVhWc0cpenp6ISEhISJwOyNTXmYsSjM1YzArZz9QaGJFaVtlaWhzLTRiU1ktZjMucE5pMSlFXl42KFpiREd1IlpmQSVWI0NlP1JoVGpILVZwJD0iJCczdWVNPis/X2ovTVZUSWtFLCpjSGhOS2JUWGIuTzVKLTtwVHEzZFdVZ1cuTGNocHMpUmkmclJVMy09Pi9BM3FKQSRUKjZ0WG5URXBmL2Q0UlItLU5WOzdYW3RJYF16enp6enp6eiEuM0tgZTVOL2NoRkZSaiNvTGUsRVJxQ1dMUlhqXF0oXDdbWSY/QzlnTzZbLFFcIzlMR09vMjlaRkFsKW8qOWImcnJAQnJJUU8vVUw+WENLSWw3NitIUmpQLFQua0tcP2heazhqMTRhZUQ/PT9tbzNfNnRcKVkkaiNDZVcyIS4tNUY0LmUzXWkkPmNNcSxVZVw8dClFUCdpcCRgLnVfTllycj9lbWVvLGFya0JidEE7O0EvLklWLkRVZj1FZWh6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6enp6eno1UUJDfj5lbmRzdHJlYW0KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtQm9sZCAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjIgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyAxMiAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDExIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdIC9YT2JqZWN0IDw8Ci9Gb3JtWG9iLjg4MzQ0NzE0YWE2Y2E1N2U4ZjA3YWQ3Y2YxZjBkYzkzIDMgMCBSCj4+Cj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago2IDAgb2JqCjw8Ci9Db250ZW50cyAxMyAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDExIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9Db250ZW50cyAxNCAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDExIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago4IDAgb2JqCjw8Ci9Db250ZW50cyAxNSAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDExIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago5IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgMTEgMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iagoxMCAwIG9iago8PAovQXV0aG9yIChhbm9ueW1vdXMpIC9DcmVhdGlvbkRhdGUgKEQ6MjAyNjAyMTYwMDE0NTQrMDAnMDAnKSAvQ3JlYXRvciAoYW5vbnltb3VzKSAvS2V5d29yZHMgKCkgL01vZERhdGUgKEQ6MjAyNjAyMTYwMDE0NTQrMDAnMDAnKSAvUHJvZHVjZXIgKFJlcG9ydExhYiBQREYgTGlicmFyeSAtIFwob3BlbnNvdXJjZVwpKSAKICAvU3ViamVjdCAodW5zcGVjaWZpZWQpIC9UaXRsZSAodW50aXRsZWQpIC9UcmFwcGVkIC9GYWxzZQo+PgplbmRvYmoKMTEgMCBvYmoKPDwKL0NvdW50IDQgL0tpZHMgWyA1IDAgUiA2IDAgUiA3IDAgUiA4IDAgUiBdIC9UeXBlIC9QYWdlcwo+PgplbmRvYmoKMTIgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggNDkyCj4+CnN0cmVhbQpHYXQlXTlpJ2UnKGtoQVcnbSFuRyhrNyNUZmUjV1o0VE5gWFglPT5RV19KQFQ8Oz8ySVZNMGluWHFqSGAsS0tFJDRDXGtlKyghZ3MkTVtjX0NzJ1F0V1dsXipLa2NAI01HUFk1aSEqUT9vS111MzJIYU0mNWAwNU0kMickVVZhLkAhPjU8UiQvJ2N1MHEhYCYxXEdicUZfQDgjKmpCc0VpSk1uXFcsJW9AZ1htWiU0bEM6aHJFWVgyKks9OS9iYl9DaFIpckBlZm0zTylCXGJWVFxKUDZlNjZmIj1ibisxcjZnaihCPkxSJmctS3AyPUI4RilXc0Q3ZTBGT15jJSFJSjhoSS1GJUdJRDtUM28lb2c7QFNYLDw4QFhgWXEiRWtaUUNDLTdmPiFaazBeNlktIjR1ZSQ7J0csLlEtbV5hIy01OS1OQiwmaVppTT47Ml9tWSJeKCMhNWtgYU9oMThvb0FjN25vQiE2cTBCIlVGYGVXZGJBNyY/OWZIcVw7ZmY8RD5zXWFgNTtkJFRvUVloQzFQJ01HRjVHWDRiclp1Imk+WUpVY0BqUiomOmtYZHI7Qko+YzUoQS41I1Q+TVkhMGo6VGlDO2Y+cXRwXy5gKnNOJVAzVV0sXz42T1ohSSc4LUpKZlB0OGlgfj5lbmRzdHJlYW0KZW5kb2JqCjEzIDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDk2Ngo+PgpzdHJlYW0KR2F0biY5NWlOTCZCRjZlTUUrZTtNNVwlKWooI3IhV0clNnAlbUF1Xz1iYUw2RyVAKCFyVXE2cmVvRGduNVpVRG1iakt0MHFrKU9eNlw0MFJmJ2ghTF5pXVk3anFLNHI/aXNCXCFlTWBCSnE2WStiR14jWmY2ZllObGNCTDMzJWZoR0w8XGhxVk0pTzxfVFFeVmd1NT8rVFNPWlguY1FCamZUKmtGRSlHSSxQYERnNzIlYjEwS19LMGcwMlBPKnJIbjtwOW89XzFOLismKC1HKGhESkRgP2hRZHA9YydbWFJlV1djW3RdYlktVmciI0FwbDcxKzw4STdhZEFqdCtyWmtbWThgOSJcQmw2bUwzZTU+KFkrWHNmJmA9UGNiaWQ3J1xfdShUMV9HaWI6RT9jRls3OyhZbTREcC1HbS4kUHRVPnM5Z20uMVUmJGNnZT08b0dxQGVnTEpzOGdVVktYL1QiMlxYZHQwQXVFMTdDTSFLR0RCMlxXTlRZYlw1OjA1OWxoRTIwcE1pRCNXQVA6JUBAJ0JCYS9rOUkwc1woLygkanAzM2w2cSJaUUtFTj0oby1UJSEvVENHQmZIZ2NdNSoubmRKTUtQVFZLbypTZEdmRnJxZXNUOCU4c1MtJmAscikkY046SFVpQURbbTAkUywyJmliR2lUZ0BVPllWQ24pPTInZGQnZWskXzUkSCNbXyZbNGlOOixXUiRLO0drPjdQdExfVDNxNCFiblhTbjdWa1onIjFjZlBNZClGYDFJOTxWYnErWWYuU2lhQ0FXZ2RFJ0M6InMsQm9cRDFjZGhDNVREOWdsOmNNM3MjbGAjUmglIiRtJXJrZGsiWT5DMFZxMyNzUjhCSE83R1NRPE5fcyc3bS5rNSpgSGlGaGVfXTtbOD9yckVbWU5rcXFhUUtKSG1CIlFNVHFVbWpYUS5uSTlJdV5wQEdNalVhOEsmUllAa204KjAlanJEU2dnQEBqOScpQzkoZTQ/ZUI3Z1Q/WD9lJFlRIk05RXFXSz1gZSInUGRfUnJ0RXM6NTRQO1o8QE9RYWdNVVhVQ2JgOXFvIVtlL1JuX0dNZ0R0SnJBXzRkOjJiTWJIZjYqVUxCPSRoNE5ESEI/ZmlWMk1JXlVeKkxBQ1olWzVvJz5ZIy5DMjw7TG8jMjo5YVgqLF1vdUkuK19zJ0pZOiJWVDlhZGY/XFRHMzdRRUhHK2UjI1M7a25nO3RwTVBicUdPQUVdWFplZV5PPyNeR3MqTUxOa3VbWShpayhddDxLZkxWXEprWXEpVX4+ZW5kc3RyZWFtCmVuZG9iagoxNCAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCA4MjQKPj4Kc3RyZWFtCkdhdG4kOWxKYE4mO0taT01FLj8wTTlzaFs/aFBOYVYlT01YUE1kSzNqZyRrOGkwTiN0RCg9WilHUG0uNys9JjNKJnJYdVo0M3UzYTFJZ2x0S0BQMjwhJitgPGRoYC9KJkRkRlstNlxuczFgUzJGKGxmTVhmQmRzSjw1RyJpSSlAK0tFLUZLUmtiNkIwXTUrYi8oVkMrJT9HIyouY09WOVRocmRUTU91RiIuLi8tZTJJJVE0ZEBmbkFVOzo0dD9xIlFrcHM0QU4hNiJvOyRSW2xiPiRjO0xVNTkxKjgvI1hzYV90XnFnPTMqZFRUTE8nNWYvQUkqLzY6JTIqRE5FQTAsNUxHQjVPdE83XidzVCtHVzlvJmgvTkFWPitlaE5RaU1xSFgoYk4qJXRpLkdJXTxjTWBkbFJuUTliN01IJy0rN0k5UzxfNSkjJ1FxTWVwNV1rLSpBWjtEZmQ7OkB1YSxAbm4+YiJpO1hIXltJRGdiTzdGajJSPzApP1M5cEZxVyVGSFxoLGV1TTJxXjRvXlwkM0soW2ZMIy5aJC1mcio2U245Wm4hMCtLV1oiOSZbVy9jcW1KYVksajUoM3VhOjZcQG89V1xDUGxMdSVxUTJgVGdZKEdqa04+LnNtWkVddW1XKTB1S1A9bEgwWz1gQGpOaCdmYzVEc3ApX2phaz5OWVpkMi5hIlRUJFBFP2ZtRlJcVlMxaEZWMDIqNUgtTEI+WyNdQ0BJXj4kOSpuX3M7NE1hSzU5Wz5VSC42Qkg1QSVSXU9FPW9mcV1rZ0hqS1VtLjg9J0NJUmU8alNAUiJbZCVGQVc2YlFTMkF0Ri9zRDJsYHFLX2RcT3REamVkal8sWDlzWGUtcztzR19qM1lSNl5LUlhtOyJeRyhrbmhSTlBPdSxyRzFhWVNvZmxgNixKPzdwM0lsX0ZkOTJcSjtjTkJyPUkhUyIkYGpIIkdnbWhjcDJnLFlCMDZSbUB1PiFZcCo5XC0pUm9WYXRRU0lRS3U9bHVeREJtajlZLk8jS1dMNipEIzNKZVImR3JSV144I1lZXi00V01lQTFGRCZfbHVoJDVnImpbOmNZYVR0I0QnJFBNdX4+ZW5kc3RyZWFtCmVuZG9iagoxNSAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCA4MTUKPj4Kc3RyZWFtCkdhdTBBOWxITGQmQUBzQmJlXSZbNkJrZExLMDloUFtvQVY1YE1mXD4yQGQwcGxtOU5ZPFc3RSUiV1ciPkRIbj9pJnQ0KztoT0JwZUo7NFo/bipwSjsyTSFOMCFlYGxxIVEmKEdhVWEyak5wSEx1JmNvVVcxJG9nSS8yMExCJDpQO2NSdVUtKFUnLSYnWk8pc15bMGFdY2otQitFXnFjNHVFaSdDUzBnXklBaEQxaSZOOjhvQ2E+NjZGcGpFMEVHTTJPVVFmQXIvM2gsPE8yJ2ZwWlxaK1JjJ1RjJFNAMClXZHBBbGA1Z2QnOkZsRFczRFxrI08lcSNsImkzSjc7bnMwTEtHRzZPN2pVWDVSPFhiWDtJPk9PZzc6NUkoISg2YzJaR0FVQmxHUW1BMFohJCVtVjAqJHFnPGInPi1xYWVmKnFVLFo1QWZSMUoqK0A6V10nJEg6SyhZamJXaldfTmxsPUQuY2ZROm9GTkE+aSUnSm8sbFNaL0VBVF9bI0s1M2AmK3MxOipEcSNnT0hwSElFUD11UTw7OSJWSzFnb3MhbyglTkoqU0QlT19wJEtHaClKZDZccCckXipsanUvVVROIShUWzBHKm4mckY9b0FHLDhvVHAzKUB1J0YjSyYxPFFNTjJmSHRDR0hoITgmPzF1RyVuPVxwKiNIOiMtXks3TkJwJTohOGUyLXVWMjU1WDkyKSppO0giRzBKKlhFSTZzaGVNT2hTcmN1SVZGVDJOQSssK0NPWTosO09xdFhRRWpJbTYwWzVcOWFsa2JwKjYtKC5tQFcyUS9zTShZYStKP1hxZ1ZoZj1gWzBbRkhPbD5xL11ealRwTTdTYUlaR0UvcHNuTmU+NWo/T2g4P3I4MURtTDFtJlVCRkc3MFxsJGQ2TykvIVEtVXNaPCstTWAkNC9EcTxbX05cKzBNJV0kK1VNZ1xTSDROazRNTjE5LFFgYSZgUUhnOzVTMCcqQ3MrWVlyUVovRWgxTG1qVjRtUlExIVA/UWFoSD1HSEViVmticSxVXjJGSTU8TVw6XDMzbjM3WyFuKG9lMzhhUnV0MTplJipTXE8rISxHIn4+ZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgMTYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDYxIDAwMDAwIG4gCjAwMDAwMDAxMDIgMDAwMDAgbiAKMDAwMDAwMDIwOSAwMDAwMCBuIAowMDAwMDI3NTYyIDAwMDAwIG4gCjAwMDAwMjc2NzQgMDAwMDAgbiAKMDAwMDAyNzkzMiAwMDAwMCBuIAowMDAwMDI4MTI3IDAwMDAwIG4gCjAwMDAwMjgzMjIgMDAwMDAgbiAKMDAwMDAyODUxNyAwMDAwMCBuIAowMDAwMDI4NTg2IDAwMDAwIG4gCjAwMDAwMjg4NDggMDAwMDAgbiAKMDAwMDAyODkyNiAwMDAwMCBuIAowMDAwMDI5NTA5IDAwMDAwIG4gCjAwMDAwMzA1NjYgMDAwMDAgbiAKMDAwMDAzMTQ4MSAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9JRCAKWzwxMmFhN2U0ZWUzNzA4YjVkZjUzZWZkYTBjMjhjYjk0Nz48MTJhYTdlNGVlMzcwOGI1ZGY1M2VmZGEwYzI4Y2I5NDc+XQolIFJlcG9ydExhYiBnZW5lcmF0ZWQgUERGIGRvY3VtZW50IC0tIGRpZ2VzdCAob3BlbnNvdXJjZSkKCi9JbmZvIDEwIDAgUgovUm9vdCA5IDAgUgovU2l6ZSAxNgo+PgpzdGFydHhyZWYKMzIzODcKJSVFT0YK" download="Dispatch_Tailor_Financial_Report_Jan_2026.pdf" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(245, 197, 24, 0.15); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 500; margin-bottom: 1.5rem; transition: all 0.3s ease;">
+                        <span style="font-size: 1.1rem;">📄</span> Download Branded Financial Report (PDF)
+                    </a>
+                    
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Jan 2026 Revenue</div>
+                            <div class="metric-value positive">$1.7K</div>
+                            <div class="metric-change">$5K total to date</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-label">Total Cash</div>
+                            <div class="metric-value positive">$9.7K</div>
+                            <div class="metric-change">Jan 31, 2026</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-label">Gross Margin</div>
+                            <div class="metric-value">35%</div>
+                            <div class="metric-change">Dispatcher & tech model</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-label">Net Loss (Jan 2026)</div>
+                            <div class="metric-value negative">($32.1K)</div>
+                            <div class="metric-change warning">Startup investment phase</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h3><span>🚀</span> Early-Stage Startup Context</h3>
+                <ul>
+                    <li><strong>Three Months of Revenue:</strong> $5,000 total revenue (Nov 2025 - Jan 2026) at $1,667/month run rate from client engagements</li>
+                    <li><strong>Development Phase:</strong> Total investment of $129.5K in operations with R&D ($41.2K) and G&A ($88.2K) to build product/service</li>
+                    <li><strong>Shareholder Contributed:</strong> $137,986 in shareholder contributions funding operations through startup phase</li>
+                    <li><strong>January Burn Reduced:</strong> $32.5K (vs $69.3K in December) primarily due to lower R&D contractor costs; accounting fees dropping to $2.7K/month from February post-onboarding</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📊</span> Executive Summary</h2>
+                <p style="line-height: 1.8; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Dispatch Tailor is an early-stage startup that has generated <strong style="color: var(--accent-green);">$5,000 in revenue across November 2025 - January 2026</strong>. The business operates with a contractor-based service delivery model targeting a 35% gross margin on client work. January 2026 marked the transition to W-2 payroll alongside contractor operations.
+                </p>
+                <p style="line-height: 1.8; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Total investment of <strong style="color: var(--text-primary);">$129,479</strong> in operations, with G&A ($88,186) and R&D ($41,188) as primary cost centers. January saw $32.5K in expenses including contractors, legal ($3.5K), accounting ($4.65K), and new payroll costs. The business is funded by <strong style="color: var(--accent-gold);">$137,986 in shareholder contributions</strong> and maintains $9,742 in cash plus $5,000 in accrued revenue as of January 31, 2026.
+                </p>
+                <p id="lookingAheadText" style="line-height: 1.8; color: var(--text-secondary); border-left: 3px solid var(--accent-gold); padding-left: 1rem; margin-top: 1.5rem;">
+                    <strong style="color: var(--accent-gold);">Looking Ahead:</strong> 2025 was about building—the platform, the team, the first client relationship. <strong>2026 is the pivot year.</strong> With a second client signed in February, we're validating product-market fit. The plan: stabilize operating costs, focus on client acquisition, and scale to <span id="lookingAheadClients">5</span> clients by year-end. December target: <span id="lookingAheadLoss">$12K</span> monthly loss. See the <strong>2026 Forecast</strong> tab to explore scenarios.
+                </p>
+            </div>
+
+            <!-- Visual Journey Timeline -->
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🗺️</span> The Journey So Far</h2>
+                <div style="position: relative; padding: 2rem 0;">
+                    <!-- Timeline line -->
+                    <div class="timeline-line" style="position: absolute; top: 50%; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #ef4444 0%, #F5C518 50%, #10b981 100%); border-radius: 2px;"></div>
+                    
+                    <!-- Timeline points -->
+                    <div class="timeline-container" style="display: flex; justify-content: space-between; position: relative; gap: 1rem;">
+                        <!-- Q2-Q3 2025 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">🔧</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid #2d2d2d;">
+                                <div style="color: #ef4444; font-weight: 600; font-size: 0.85rem;">Q2-Q3 2025</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">Build Phase</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">Platform development<br>$41K R&D investment<br>Team assembly</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Nov 2025 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #F5C518, #eab308); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(245, 197, 24, 0.4);">🎯</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid var(--accent-gold);">
+                                <div style="color: var(--accent-gold); font-weight: 600; font-size: 0.85rem;">NOV 2025</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">First Revenue</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">Client #1 signed<br>$1,667/month<br>Product-market signal</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Feb 2026 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">✅</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid #10b981;">
+                                <div style="color: #10b981; font-weight: 600; font-size: 0.85rem;">FEB 2026</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">Validation</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;">Client #2 signed<br>$1,800/month<br>Model repeatable</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dec 2026 -->
+                        <div style="text-align: center; flex: 1;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">🚀</div>
+                            <div style="background: #1a1a1a; padding: 1rem; border-radius: 12px; border: 1px solid #3b82f6;">
+                                <div style="color: #3b82f6; font-weight: 600; font-size: 0.85rem;">DEC 2026 (Target)</div>
+                                <div style="color: var(--text-primary); font-weight: 500; margin: 0.5rem 0;">Scale</div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem;"><span id="journeyClients">5</span> clients<br><span id="journeyRevenue">$8.9K</span>/month revenue<br><span id="journeyLoss">$12K/month loss</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Numbers at a Glance -->
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🎯</span> The Numbers That Matter</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <div id="keyRevenue" style="font-size: 2.5rem; font-weight: 700; color: #10b981;">$1,800</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Revenue per Client</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">Monthly recurring</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(245, 197, 24, 0.15), rgba(245, 197, 24, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(245, 197, 24, 0.3);">
+                        <div id="keyMargin" style="font-size: 2.5rem; font-weight: 700; color: #F5C518;">35%</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Gross Margin</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">After dispatcher & tech costs</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div id="keyBreakeven" style="font-size: 2.5rem; font-weight: 700; color: #ef4444;">24</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Clients to Breakeven</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">At current unit economics</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05)); padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid rgba(139, 92, 246, 0.3);">
+                        <div id="keyGrossProfit" style="font-size: 2.5rem; font-weight: 700; color: #8b5cf6;">$630</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.5rem;">Gross Profit per Client</div>
+                        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">Monthly contribution</div>
+                    </div>
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem; opacity: 0.7;">
+                    💡 These numbers update when you adjust the <strong>Scenario Builder</strong> in the 2026 Forecast tab
+                </p>
+            </div>
+
+            <div class="chart-grid">
+                <div class="section">
+                    <h2 class="section-header">Monthly Expenses Trend</h2>
+                    <div class="chart-container">
+                        <canvas id="expenseTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-header">Expense Breakdown (YTD)</h2>
+                    <div class="chart-container">
+                        <canvas id="expenseBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financials Section -->
+        <div class="content-section" id="financials">
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📈</span> Profit & Loss Statement</h2>
+                <div style="overflow-x: auto;">
+                <table style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 180px;">Account</th>
+                            <th>Jun 25</th>
+                            <th>Jul 25</th>
+                            <th>Aug 25</th>
+                            <th>Sep 25</th>
+                            <th>Oct 25</th>
+                            <th>Nov 25</th>
+                            <th>Dec 25</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">2025</th>
+                            <th>Jan 26</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">2026</th>
+                            <th style="background: rgba(245, 197, 24, 0.25);">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>REVENUE</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Service Revenue</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$3,333</strong></td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$5,000</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total Revenue</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="positive"><strong>$1,667</strong></td>
+                            <td class="positive"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$3,333</strong></td>
+                            <td class="positive"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$1,667</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$5,000</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>COST OF GOODS SOLD</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">COGS - Dispatcher & Tech</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($1,250)</td>
+                            <td class="negative">($1,250)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($2,500)</strong></td>
+                            <td class="negative">($1,250)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,250)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($3,750)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Gross Profit</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="positive"><strong>$417</strong></td>
+                            <td class="positive"><strong>$417</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$833</strong></td>
+                            <td class="positive"><strong>$417</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$417</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$1,250</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>OPERATING EXPENSES</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Contractors - G&A</td>
+                            <td>—</td>
+                            <td class="negative">($3,420)</td>
+                            <td>—</td>
+                            <td class="negative">($3,420)</td>
+                            <td class="negative">($4,108)</td>
+                            <td class="negative">($5,647)</td>
+                            <td class="negative">($22,271)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($38,866)</strong></td>
+                            <td class="negative">($17,298)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($17,298)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($56,164)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Contractors - R&D</td>
+                            <td>—</td>
+                            <td class="negative">($3,000)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($7,275)</td>
+                            <td class="negative">($5,803)</td>
+                            <td class="negative">($31,060)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($47,138)</strong></td>
+                            <td class="negative">($4,325)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($4,325)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($51,463)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Legal & Professional</td>
+                            <td class="negative">($359)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($11,065)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($11,424)</strong></td>
+                            <td class="negative">($3,500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,500)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($14,924)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Accounting Services</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($4,050)</td>
+                            <td class="negative">($4,075)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($8,125)</strong></td>
+                            <td class="negative">($4,650)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($4,650)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($12,775)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Salary & Wages</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"><strong>—</strong></td>
+                            <td class="negative">($1,422)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,422)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($1,422)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Other (Ins, Ads, SW, Fees)</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td class="negative">($195)</td>
+                            <td class="negative">($161)</td>
+                            <td class="negative">($815)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,171)</strong></td>
+                            <td class="negative">($1,341)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($1,341)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($2,512)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total Operating Expenses</strong></td>
+                            <td class="negative"><strong>($359)</strong></td>
+                            <td class="negative"><strong>($6,420)</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="negative"><strong>($3,420)</strong></td>
+                            <td class="negative"><strong>($11,578)</strong></td>
+                            <td class="negative"><strong>($15,661)</strong></td>
+                            <td class="negative"><strong>($69,286)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($106,724)</strong></td>
+                            <td class="negative"><strong>($32,536)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($32,536)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($139,260)</strong></td>
+                        </tr>
+                        <tr class="total-row" style="background: rgba(239, 68, 68, 0.1);">
+                            <td><strong>NET INCOME</strong></td>
+                            <td class="negative"><strong>($359)</strong></td>
+                            <td class="negative"><strong>($6,420)</strong></td>
+                            <td><strong>—</strong></td>
+                            <td class="negative"><strong>($3,420)</strong></td>
+                            <td class="negative"><strong>($11,578)</strong></td>
+                            <td class="negative"><strong>($15,244)</strong></td>
+                            <td class="negative"><strong>($68,869)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($105,891)</strong></td>
+                            <td class="negative"><strong>($32,119)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($32,119)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($138,010)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">💼</span> Balance Sheet (January 31, 2026)</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-size: 1.125rem;">Assets</h3>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Current Assets</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Checking Account</td>
+                                    <td class="positive">$9,742</td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Accrued Revenue</td>
+                                    <td class="positive">$5,000</td>
+                                </tr>
+                                <tr class="total-row" style="background: rgba(16, 185, 129, 0.15);">
+                                    <td><strong>TOTAL ASSETS</strong></td>
+                                    <td class="positive"><strong>$14,742</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.125rem;">Liabilities & Equity</h3>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Liabilities</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Accounts Payable</td>
+                                    <td class="negative">$5,344</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td><strong>Total Liabilities</strong></td>
+                                    <td class="negative"><strong>$5,344</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Shareholders' Equity</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Shareholders Contribution</td>
+                                    <td class="positive">$137,986</td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Retained Earnings</td>
+                                    <td class="negative">($96,469)</td>
+                                </tr>
+                                <tr>
+                                    <td class="indent">Net Income (Jan 2026)</td>
+                                    <td class="negative">($32,119)</td>
+                                </tr>
+                                <tr class="total-row" style="background: rgba(16, 185, 129, 0.15);">
+                                    <td><strong>Total Equity</strong></td>
+                                    <td class="positive"><strong>$9,398</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2026 Forecast Section -->
+        <div class="content-section" id="forecast">
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🔮</span> 2026 Financial Forecast</h2>
+                <div style="background: linear-gradient(135deg, rgba(245, 197, 24, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid var(--accent-gold);">
+                    <h3 style="color: var(--accent-gold); margin-bottom: 1rem;">The Path Forward: From Build to Scale</h3>
+                    <p style="line-height: 1.8; margin-bottom: 1rem;">2025 was about building the foundation—developing the dispatch platform, proving the model with our first client, and assembling the team. We invested heavily in R&D contractors to build technology that differentiates us in the market.</p>
+                    <p style="line-height: 1.8; margin-bottom: 1rem;"><strong>2026 is the pivot year.</strong> With our second client signed in February, we're validating product-market fit. The plan: stabilize R&D spending as the platform matures, shift focus to client acquisition, and scale the client base by year-end. Each new client at $1,800/month with 35% gross margins gets us closer to sustainability.</p>
+                    <p style="line-height: 1.8;"><strong>The math is simple:</strong> As we add clients and stabilize operating costs, monthly losses decrease. The question isn't if—it's how fast we can acquire clients while managing cash runway.</p>
+                </div>
+                <div class="insight-grid" style="margin-bottom: 2rem;">
+                    <div class="insight-card">
+                        <h4>Forecast Assumptions</h4>
+                        <p><strong>Revenue:</strong> New client signed Feb ($1.1K prorated, then $1.8K/month). 3 additional clients (May, Aug, Oct).</p>
+                        <p><strong>COGS:</strong> Dispatcher & tech costs at 65% of revenue (35% gross margin).</p>
+                        <p><strong>R&D:</strong> Wind down from $15K to $5K/month by May as platform matures.</p>
+                        <p><strong>Software:</strong> Scales with clients (~$200/client + $300 base).</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Key Projections</h4>
+                        <p><strong>2026 Revenue:</strong> <span class="positive">$67,904</span></p>
+                        <p><strong>2026 Gross Profit:</strong> <span class="positive">$23,773</span> (35% margin)</p>
+                        <p><strong>2026 Net Loss:</strong> <span class="negative">($172,577)</span></p>
+                        <p><strong>Dec Exit Rate:</strong> $8.9K rev / $10.8K loss</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📊</span> Monthly Forecast</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem; background: rgba(245, 197, 24, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-gold);">
+                    📌 <strong>Base Case:</strong> 5 clients by Dec, 35% margin, $15K stable OpEx. Use the <strong>Scenario Builder</strong> below to explore alternatives.
+                </p>
+                <div style="overflow-x: auto;">
+                <table style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 140px;">Account</th>
+                            <th>Jan</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Apr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">H1</th>
+                            <th>Jul</th>
+                            <th>Aug</th>
+                            <th>Sep</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dec</th>
+                            <th style="background: rgba(245, 197, 24, 0.15);">H2</th>
+                            <th style="background: rgba(245, 197, 24, 0.25);">2026</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Clients</strong></td>
+                            <td>1</td><td>2</td><td>2</td><td>2</td><td>3</td><td>3</td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td>3</td><td>4</td><td>4</td><td>5</td><td>5</td><td>5</td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td style="background: rgba(245, 197, 24, 0.15);"><strong>5</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>REVENUE</strong></td>
+                            <td class="positive">$1,667</td>
+                            <td class="positive">$2,767</td>
+                            <td class="positive">$3,467</td>
+                            <td class="positive">$3,467</td>
+                            <td class="positive">$5,267</td>
+                            <td class="positive">$5,267</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$21,902</strong></td>
+                            <td class="positive">$5,267</td>
+                            <td class="positive">$7,067</td>
+                            <td class="positive">$7,067</td>
+                            <td class="positive">$8,867</td>
+                            <td class="positive">$8,867</td>
+                            <td class="positive">$8,867</td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.1);"><strong>$46,002</strong></td>
+                            <td class="positive" style="background: rgba(245, 197, 24, 0.15);"><strong>$67,904</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">COGS (Dispatcher & Tech)</td>
+                            <td class="negative">($1,083)</td>
+                            <td class="negative">($1,798)</td>
+                            <td class="negative">($2,253)</td>
+                            <td class="negative">($2,253)</td>
+                            <td class="negative">($3,423)</td>
+                            <td class="negative">($3,423)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($14,233)</strong></td>
+                            <td class="negative">($3,423)</td>
+                            <td class="negative">($4,593)</td>
+                            <td class="negative">($4,593)</td>
+                            <td class="negative">($5,763)</td>
+                            <td class="negative">($5,763)</td>
+                            <td class="negative">($5,763)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($29,898)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($44,131)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Gross Profit (35%)</strong></td>
+                            <td><strong>$584</strong></td>
+                            <td><strong>$969</strong></td>
+                            <td><strong>$1,214</strong></td>
+                            <td><strong>$1,214</strong></td>
+                            <td><strong>$1,844</strong></td>
+                            <td><strong>$1,844</strong></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"><strong>$7,669</strong></td>
+                            <td><strong>$1,844</strong></td>
+                            <td><strong>$2,474</strong></td>
+                            <td><strong>$2,474</strong></td>
+                            <td><strong>$3,104</strong></td>
+                            <td><strong>$3,104</strong></td>
+                            <td><strong>$3,104</strong></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"><strong>$16,104</strong></td>
+                            <td style="background: rgba(245, 197, 24, 0.15);"><strong>$23,773</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>OPERATING EXPENSES</strong></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td>
+                            <td style="background: rgba(245, 197, 24, 0.1);"></td>
+                            <td style="background: rgba(245, 197, 24, 0.15);"></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">R&D Contractors</td>
+                            <td class="negative">($15,000)</td>
+                            <td class="negative">($12,500)</td>
+                            <td class="negative">($10,000)</td>
+                            <td class="negative">($7,500)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($55,000)</strong></td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($30,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($85,000)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">G&A Contractors</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($30,000)</strong></td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative">($5,000)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($30,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($60,000)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Accounting Fees</td>
+                            <td class="negative">($4,650)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($18,150)</strong></td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative">($2,700)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($16,200)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($34,350)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Legal & Professional</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($6,000)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Software & Tools</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($700)</td>
+                            <td class="negative">($700)</td>
+                            <td class="negative">($700)</td>
+                            <td class="negative">($900)</td>
+                            <td class="negative">($900)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($4,400)</strong></td>
+                            <td class="negative">($900)</td>
+                            <td class="negative">($1,100)</td>
+                            <td class="negative">($1,100)</td>
+                            <td class="negative">($1,300)</td>
+                            <td class="negative">($1,300)</td>
+                            <td class="negative">($1,300)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($7,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($11,400)</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="indent">Insurance & Other</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative">($500)</td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($3,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($6,000)</strong></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Total OpEx</strong></td>
+                            <td class="negative"><strong>($26,150)</strong></td>
+                            <td class="negative"><strong>($21,900)</strong></td>
+                            <td class="negative"><strong>($19,400)</strong></td>
+                            <td class="negative"><strong>($16,900)</strong></td>
+                            <td class="negative"><strong>($14,600)</strong></td>
+                            <td class="negative"><strong>($14,600)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($113,550)</strong></td>
+                            <td class="negative"><strong>($14,600)</strong></td>
+                            <td class="negative"><strong>($14,800)</strong></td>
+                            <td class="negative"><strong>($14,800)</strong></td>
+                            <td class="negative"><strong>($15,000)</strong></td>
+                            <td class="negative"><strong>($15,000)</strong></td>
+                            <td class="negative"><strong>($15,000)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($89,200)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($202,750)</strong></td>
+                        </tr>
+                        <tr class="total-row" style="background: rgba(239, 68, 68, 0.1);">
+                            <td><strong>NET INCOME</strong></td>
+                            <td class="negative"><strong>($25,566)</strong></td>
+                            <td class="negative"><strong>($20,931)</strong></td>
+                            <td class="negative"><strong>($18,186)</strong></td>
+                            <td class="negative"><strong>($15,686)</strong></td>
+                            <td class="negative"><strong>($12,756)</strong></td>
+                            <td class="negative"><strong>($12,756)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($105,881)</strong></td>
+                            <td class="negative"><strong>($12,756)</strong></td>
+                            <td class="negative"><strong>($12,326)</strong></td>
+                            <td class="negative"><strong>($12,326)</strong></td>
+                            <td class="negative"><strong>($11,896)</strong></td>
+                            <td class="negative"><strong>($11,896)</strong></td>
+                            <td class="negative"><strong>($11,896)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.1);"><strong>($73,096)</strong></td>
+                            <td class="negative" style="background: rgba(245, 197, 24, 0.15);"><strong>($178,977)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <!-- Interactive Scenario Builder -->
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🎮</span> Scenario Builder — What If?</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Adjust the variables below to see how different scenarios affect the 2026 outlook. Drag the sliders to explore.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <!-- Controls -->
+                    <div style="background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #2d2d2d;">
+                        <h4 style="color: var(--accent-gold); margin-bottom: 1.5rem;">📊 Adjust Variables</h4>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Clients by Dec 2026</span>
+                                <span id="clientsValue" style="color: #10b981; font-weight: 600;">5</span>
+                            </label>
+                            <input type="range" id="clientsSlider" min="2" max="15" value="5" style="width: 100%; accent-color: #10b981;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Revenue per Client</span>
+                                <span id="revenueValue" style="color: #10b981; font-weight: 600;">$1,800</span>
+                            </label>
+                            <input type="range" id="revenueSlider" min="1000" max="3500" step="100" value="1800" style="width: 100%; accent-color: #10b981;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Gross Margin %</span>
+                                <span id="marginValue" style="color: #F5C518; font-weight: 600;">35%</span>
+                            </label>
+                            <input type="range" id="marginSlider" min="20" max="50" value="35" style="width: 100%; accent-color: #F5C518;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                <span>Monthly Fixed OpEx (stable state)</span>
+                                <span id="opexValue" style="color: #ef4444; font-weight: 600;">$15,000</span>
+                            </label>
+                            <input type="range" id="opexSlider" min="8000" max="25000" step="500" value="15000" style="width: 100%; accent-color: #ef4444;">
+                        </div>
+                        
+                        <button onclick="resetScenario()" style="width: 100%; padding: 0.75rem; background: #2d2d2d; border: 1px solid #3d3d3d; color: var(--text-secondary); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                            ↺ Reset to Base Case
+                        </button>
+                    </div>
+                    
+                    <!-- Results -->
+                    <div style="background: linear-gradient(135deg, rgba(245, 197, 24, 0.1), rgba(16, 185, 129, 0.05)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(245, 197, 24, 0.3);">
+                        <h4 style="color: var(--accent-gold); margin-bottom: 1.5rem;">📈 Scenario Results</h4>
+                        
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Dec 2026 Monthly Revenue</span>
+                                <span id="resultRevenue" style="color: #10b981; font-weight: 600;">$8,867</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Dec 2026 Gross Profit</span>
+                                <span id="resultGrossProfit" style="color: #10b981; font-weight: 600;">$3,103</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Dec 2026 Monthly Loss</span>
+                                <span id="resultLoss" style="color: #ef4444; font-weight: 600;">($11,897)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                                <span style="color: var(--text-secondary);">Clients to Breakeven</span>
+                                <span id="resultBreakeven" style="color: #F5C518; font-weight: 600;">24</span>
+                            </div>
+                        </div>
+                        
+                        <div id="scenarioInsight" style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 3px solid var(--accent-gold);">
+                            <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                                <strong style="color: var(--text-primary);">Base Case:</strong> At 5 clients with 35% margins, you'll lose ~$12K/month by December. You need 24 clients to break even.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">📈</span> Revenue vs Burn Trajectory</h2>
+                <div class="chart-container">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div style="background: rgba(30, 30, 30, 0.8); padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; border: 1px solid #2d2d2d;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 1rem;">📖 Reading This Chart</h4>
+                    <div style="display: grid; gap: 1rem; color: var(--text-secondary); line-height: 1.7;">
+                        <p><span style="color: #10b981; font-weight: 600;">● Green (Revenue)</span> — Starts near zero, climbs steadily as we add clients. By December, we're at <span id="chartExplainRevenue">~$9K</span>/month with <span id="chartExplainClients">5</span> clients.</p>
+                        <p><span style="color: #ef4444; font-weight: 600;">● Red (Monthly Loss)</span> — Starts high at $25K because we're still paying for platform development. Watch it drop as costs stabilize, reaching <span id="chartExplainLoss">~$12K</span>/month by December.</p>
+                        <p><span style="color: #F5C518; font-weight: 600;">◌ Yellow Dashed (Clients)</span> — The staircase pattern. Each step is a new client signing. Revenue follows clients; losses shrink as we scale.</p>
+                    </div>
+                    <div style="border-top: 1px solid #2d2d2d; margin-top: 1rem; padding-top: 1rem;">
+                        <p style="color: var(--accent-gold); font-weight: 500; margin-bottom: 0.5rem;">The Key Insight: The lines are converging.</p>
+                        <p id="chartExplainInsight" style="color: var(--text-secondary); line-height: 1.7;">Revenue is rising, losses are falling. They don't cross in 2026—breakeven needs ~24 clients—but the gap shrinks from <strong style="color: #ef4444;">$25K</strong> to <strong style="color: #10b981;">$12K</strong>. That's costs stabilizing while revenue grows. Every new client from here improves the picture.</p>
+                        <p style="color: var(--text-secondary); margin-top: 0.75rem;"><strong style="color: var(--text-primary);">The 2027 question:</strong> How fast can we climb the client staircase?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">💰</span> Funding & Path to Profitability</h2>
+                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 197, 24, 0.05) 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #ef4444;">
+                    <h3 style="color: #ef4444; margin-bottom: 1rem;">The Funding Reality</h3>
+                    <p style="line-height: 1.8;">We've invested $138K of shareholder capital to date. 2026 will require an additional ~$175K to fund operations through year-end. This isn't a burn problem—it's an investment in growth infrastructure. Every dollar in R&D today reduces future costs; every client signed improves unit economics.</p>
+                </div>
+                <div class="insight-grid">
+                    <div class="insight-card">
+                        <h4>2026 Cash Requirements</h4>
+                        <p><strong>Projected Net Loss:</strong> ($178,977)</p>
+                        <p><strong>Already Funded:</strong> $138,010</p>
+                        <p><strong>Additional Capital:</strong> ~$175K needed</p>
+                        <p><strong>Total 2026 Investment:</strong> ~$317K cumulative</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Unit Economics @ Scale</h4>
+                        <p><strong>Revenue/Client:</strong> $1,800/month</p>
+                        <p><strong>Gross Margin:</strong> 35% ($630/client)</p>
+                        <p><strong>Fixed OpEx (stable):</strong> ~$15K/month</p>
+                        <p><strong>Breakeven:</strong> ~24 clients</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>2026 Milestones</h4>
+                        <p>✅ <strong>Feb:</strong> 2nd client signed—validation</p>
+                        <p>🎯 <strong>May:</strong> R&D winds to $5K, 3 clients</p>
+                        <p>🎯 <strong>Oct:</strong> 5 clients, $12K/mo loss</p>
+                        <p>🎯 <strong>2027:</strong> Path to 10+ clients, breakeven</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="content-section" id="insights">
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">💡</span> Key Insights & Strategic Position</h2>
+                <div class="insight-grid">
+                    <div class="insight-card">
+                        <h4>Market Entry</h4>
+                        <p>Q1 2026 is being tested for initial product-market fit. Contractor-based delivery model targeting 35-40% gross margin on client work.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Investment Phase</h4>
+                        <p>Total investment of $129.5K split between G&A (68%) and R&D (32%). January marked transition to W-2 payroll alongside contractor operations.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Funding Structure</h4>
+                        <p>$137,986 in shareholder contributions funding startup operations. Additional $33.8K contributed in January to support growth and payroll transition.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>January Operations</h4>
+                        <p>$32.5K monthly burn (down from $69.3K in December) primarily due to reduced R&D contractor costs ($4.3K vs $31K). First W-2 payroll costs added ($1.6K).</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Cash Position</h4>
+                        <p>$9,742 in cash plus $5,000 accrued revenue totaling $14,742 in current assets. Accounts payable of $5,344 results in positive working capital.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Critical Focus</h4>
+                        <p>Revenue acceleration is paramount. Need to scale from $1.7K/month to $10K+ to reduce burn rate dependency on shareholder contributions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-header"><span class="section-icon">🎯</span> Strategic Priorities</h2>
+                
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Revenue Target</div>
+                        <div class="stat-value" style="color: var(--accent-green);">$10K+/mo</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Gross Margin Goal</div>
+                        <div class="stat-value" style="color: var(--accent-gold);">35-40%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Client Acquisition</div>
+                        <div class="stat-value" style="color: var(--accent-purple);">Priority</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Break-Even Target</div>
+                        <div class="stat-value" style="color: var(--accent-orange);">Q2 2026</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(245, 197, 24, 0.1); border-radius: 0.75rem; border-left: 4px solid var(--accent-gold);">
+                    <h4 style="color: var(--accent-gold); margin-bottom: 1rem; font-weight: 600;">Next Steps</h4>
+                    <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
+                        <li>Scale revenue from $1.7K/month to $10K+ monthly through client acquisition and service expansion</li>
+                        <li>Improve gross margins from 25% to 35-40% through operational efficiency and pricing optimization</li>
+                        <li>Convert $47.5K R&D investment into market-ready services with clear value propositions</li>
+                        <li>Manage burn rate - December's $53K spend not sustainable without corresponding revenue growth</li>
+                        <li>Establish repeatable sales process and customer success framework</li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 0.75rem; border-left: 4px solid var(--accent-purple);">
+                    <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-weight: 600;">Currently Exploring</h4>
+                    <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
+                        <li><strong>Company Credit Cards:</strong> Evaluating business credit options to improve cash flow management and separate business/personal expenses</li>
+                        <li><strong>R&D Tax Credits:</strong> Determined not eligible for 2025; will evaluate eligibility for 2026 based on qualifying R&D activities</li>
+                        <li><strong>Accounting Fees Reduction:</strong> Monthly accounting fees decreasing from $4.65K to $2.7K starting February 2026 as onboarding phase completes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 58" style="height: 50px; margin-bottom: 0.5rem;"><g transform="scale(1) translate(10, 10)"><g transform="matrix(2.6449021867258327,0,0,2.6449021867258327,0.9556043990547832,-15.367969958469999)" fill="#ffffff"><path d="M14.414 20.19531 l-3.1152 0 l-0.9375 -1.9336 l-2.7344 0 l0 -2.7148 l1.4063 0 l-2.002 -4.1113 l-4.2773 8.7598 l-3.1152 0 l7.3926 -14.385 z M38.954765625 6.122999999999999 l-11.445 14.072 l-3.5742 0 l5.7227 -7.0313 l-5.7227 -7.041 l3.5742 0 l3.9355 4.8438 l3.9453 -4.8438 l3.5645 0 z M35.234765625 15.6152 l3.7207 4.5801 l-3.5742 0 l-1.9336 -2.373 z M48.5449225 11.8066 l6.8164 0 l0 2.7148 l-6.8164 0 l0 -2.7148 z M48.5449225 17.4805 l11.318 0 l0 2.7148 l-11.318 0 l0 -2.7148 z M48.5449225 6.1129999999999995 l11.318 0 l0 2.7148 l-11.318 0 l0 -2.7148 z M79.1406 14.511700000000001 l-3.4375 0 l0 -2.7148 l3.4375 0 l0 2.7148 z M81.426 6.122999999999999 l0 2.7148 l-8.8574 0 l0 11.357 l-2.8125 0 l0 -14.072 l11.67 0 z M91.347656875 6.122999999999999 l2.8125 0 l0 14.072 l-2.8125 0 l0 -14.072 z"/></g></g></svg>
+            <p style="margin-top: 0.25rem;">Sharper Finance. Stronger Decisions.</p>
+            <p style="margin-top: 0.5rem;">Axe Financial LLC • <a href="https://www.axe.financial" style="color: var(--accent-gold); text-decoration: none;">www.axe.financial</a> • Proprietary & Confidential</p>
+        </footer>
+    </div>
+
+    <script>
+        // Chart configurations
+        Chart.defaults.color = '#a0a0a0';
+        Chart.defaults.borderColor = '#2d2d2d';
+        Chart.defaults.font.family = 'Inter';
+        
+        // Global chart reference for dynamic updates
+        let forecastChartInstance = null;
+
+        // Expense Trend Chart
+        const expenseTrendCtx = document.getElementById('expenseTrendChart').getContext('2d');
+        new Chart(expenseTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                datasets: [{
+                    label: 'Total Expenses',
+                    data: [359, 6420, 0, 3420, 11578, 15661, 69286, 32536],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#a0a0a0',
+                        borderColor: '#2d2d2d',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + (value/1000) + 'K';
+                            }
+                        },
+                        grid: {
+                            color: '#2d2d2d'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Expense Breakdown Chart
+        const expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
+        new Chart(expenseBreakdownCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Contractors G&A', 'Contractors R&D', 'Legal & Prof', 'Accounting', 'Payroll', 'Other'],
+                datasets: [{
+                    data: [56866, 41188, 14565, 12775, 2011, 2074],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(245, 197, 24, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(148, 163, 184, 0.8)'
+                    ],
+                    borderColor: '#1a1a1a',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#a0a0a0',
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#a0a0a0',
+                        borderColor: '#2d2d2d',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': $' + value.toLocaleString() + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2026 Forecast Chart
+        const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+        forecastChartInstance = new Chart(forecastCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [1667, 2767, 3467, 3467, 5267, 5267, 5267, 7067, 7067, 8867, 8867, 8867],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Monthly Loss',
+                    data: [25566, 20931, 18186, 15686, 12756, 12756, 12756, 12326, 12326, 11896, 11896, 11896],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Clients',
+                    data: [1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5],
+                    borderColor: '#F5C518',
+                    backgroundColor: 'rgba(245, 197, 24, 0.1)',
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderDash: [5, 5],
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#a0a0a0', padding: 15 }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a1a',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#a0a0a0',
+                        borderColor: '#2d2d2d',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#2d2d2d' },
+                        ticks: {
+                            callback: function(value) { return '$' + (value/1000).toFixed(0) + 'K'; }
+                        }
+                    },
+                    y1: {
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#F5C518' },
+                        title: { display: true, text: 'Clients', color: '#F5C518' }
+                    },
+                    x: {
+                        grid: { color: '#2d2d2d' }
+                    }
+                }
+            }
+        });
+
+        // Tab navigation
+        const tabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('.content-section');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetSection = tab.getAttribute('data-section');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active section
+                sections.forEach(s => s.classList.remove('active'));
+                document.getElementById(targetSection).classList.add('active');
+            });
+        });
+
+        // Scenario Builder Logic
+        const clientsSlider = document.getElementById('clientsSlider');
+        const revenueSlider = document.getElementById('revenueSlider');
+        const marginSlider = document.getElementById('marginSlider');
+        const opexSlider = document.getElementById('opexSlider');
+
+        function updateScenario() {
+            const clients = parseInt(clientsSlider.value);
+            const revenuePerClient = parseInt(revenueSlider.value);
+            const marginPct = parseInt(marginSlider.value) / 100;
+            const fixedOpex = parseInt(opexSlider.value);
+
+            // Update display values
+            document.getElementById('clientsValue').textContent = clients;
+            document.getElementById('revenueValue').textContent = '$' + revenuePerClient.toLocaleString();
+            document.getElementById('marginValue').textContent = marginSlider.value + '%';
+            document.getElementById('opexValue').textContent = '$' + fixedOpex.toLocaleString();
+
+            // Calculate results
+            // Include existing client at $1,667
+            const decRevenue = 1667 + ((clients - 1) * revenuePerClient);
+            const grossProfit = Math.round(decRevenue * marginPct);
+            const monthlyLoss = grossProfit - fixedOpex;
+            const grossProfitPerClient = Math.round(revenuePerClient * marginPct);
+            const breakeven = grossProfitPerClient > 0 ? Math.ceil(fixedOpex / grossProfitPerClient) : 999;
+
+            // Update results in Forecast tab
+            document.getElementById('resultRevenue').textContent = '$' + decRevenue.toLocaleString();
+            document.getElementById('resultGrossProfit').textContent = '$' + grossProfit.toLocaleString();
+            
+            if (monthlyLoss >= 0) {
+                document.getElementById('resultLoss').textContent = '$' + monthlyLoss.toLocaleString();
+                document.getElementById('resultLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('resultLoss').textContent = '($' + Math.abs(monthlyLoss).toLocaleString() + ')';
+                document.getElementById('resultLoss').style.color = '#ef4444';
+            }
+            
+            document.getElementById('resultBreakeven').textContent = breakeven > 50 ? '50+' : breakeven;
+
+            // Update Overview tab - Looking Ahead section
+            document.getElementById('lookingAheadClients').textContent = clients;
+            if (monthlyLoss >= 0) {
+                document.getElementById('lookingAheadLoss').textContent = '$' + monthlyLoss.toLocaleString() + ' profit';
+                document.getElementById('lookingAheadLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('lookingAheadLoss').textContent = '$' + Math.abs(Math.round(monthlyLoss/1000)) + 'K';
+                document.getElementById('lookingAheadLoss').style.color = '';
+            }
+
+            // Update Overview tab - Key Numbers
+            document.getElementById('keyRevenue').textContent = '$' + revenuePerClient.toLocaleString();
+            document.getElementById('keyMargin').textContent = marginSlider.value + '%';
+            document.getElementById('keyBreakeven').textContent = breakeven > 50 ? '50+' : breakeven;
+            document.getElementById('keyGrossProfit').textContent = '$' + grossProfitPerClient.toLocaleString();
+
+            // Update Journey Timeline - Dec 2026 target
+            document.getElementById('journeyClients').textContent = clients;
+            document.getElementById('journeyRevenue').textContent = '$' + (decRevenue / 1000).toFixed(1) + 'K';
+            if (monthlyLoss >= 0) {
+                document.getElementById('journeyLoss').textContent = '$' + (monthlyLoss / 1000).toFixed(1) + 'K/month profit';
+                document.getElementById('journeyLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('journeyLoss').textContent = '$' + (Math.abs(monthlyLoss) / 1000).toFixed(1) + 'K/month loss';
+                document.getElementById('journeyLoss').style.color = '';
+            }
+
+            // Update Chart Explanation box
+            document.getElementById('chartExplainRevenue').textContent = '~$' + (decRevenue / 1000).toFixed(0) + 'K';
+            document.getElementById('chartExplainClients').textContent = clients;
+            if (monthlyLoss >= 0) {
+                document.getElementById('chartExplainLoss').textContent = '$' + (monthlyLoss / 1000).toFixed(0) + 'K profit';
+                document.getElementById('chartExplainLoss').style.color = '#10b981';
+            } else {
+                document.getElementById('chartExplainLoss').textContent = '~$' + (Math.abs(monthlyLoss) / 1000).toFixed(0) + 'K';
+                document.getElementById('chartExplainLoss').style.color = '';
+            }
+            
+            // Update chart explanation insight
+            let chartInsight = '';
+            if (monthlyLoss >= 0) {
+                chartInsight = `Revenue is rising and has overtaken costs—<strong style="color: #10b981;">you're profitable!</strong> At ${clients} clients with ${marginSlider.value}% margins, you make <strong style="color: #10b981;">$${monthlyLoss.toLocaleString()}</strong>/month.`;
+            } else if (breakeven <= clients + 5) {
+                chartInsight = `Revenue is rising, losses are falling. Breakeven needs ${breakeven} clients—you're only <strong style="color: #F5C518;">${breakeven - clients} clients away</strong>. The gap shrinks from <strong style="color: #ef4444;">$25K</strong> to <strong style="color: #10b981;">$${(Math.abs(monthlyLoss) / 1000).toFixed(0)}K</strong>.`;
+            } else {
+                chartInsight = `Revenue is rising, losses are falling. They don't cross in 2026—breakeven needs ~${breakeven} clients—but the gap shrinks from <strong style="color: #ef4444;">$25K</strong> to <strong style="color: #10b981;">$${(Math.abs(monthlyLoss) / 1000).toFixed(0)}K</strong>. Every new client improves the picture.`;
+            }
+            document.getElementById('chartExplainInsight').innerHTML = chartInsight;
+
+            // Update chart data
+            if (forecastChartInstance) {
+                // Calculate monthly progression
+                // Assume clients ramp: Jan=1, Feb=2, then spread remaining evenly
+                const clientRamp = calculateClientRamp(clients);
+                const revenueData = clientRamp.map((c, i) => {
+                    if (i === 0) return 1667; // Jan - existing client only
+                    if (i === 1) return 1667 + 1100; // Feb - prorated new client
+                    return 1667 + ((c - 1) * revenuePerClient);
+                });
+                
+                // OpEx ramps down from 26K to fixedOpex by month 5
+                const opexRamp = [26150, 21900, 19400, 16900, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex, fixedOpex];
+                
+                const lossData = revenueData.map((rev, i) => {
+                    const gp = Math.round(rev * marginPct);
+                    const cogs = rev - gp;
+                    return Math.abs(gp - opexRamp[i]);
+                });
+
+                forecastChartInstance.data.datasets[0].data = revenueData;
+                forecastChartInstance.data.datasets[1].data = lossData;
+                forecastChartInstance.data.datasets[2].data = clientRamp;
+                forecastChartInstance.update();
+            }
+
+            // Update insight text
+            let insight = '';
+            if (monthlyLoss >= 0) {
+                insight = `<strong style="color: #10b981;">🎉 Profitable!</strong> At ${clients} clients with ${marginSlider.value}% margins, you'd make $${monthlyLoss.toLocaleString()}/month profit!`;
+            } else if (clients >= breakeven) {
+                insight = `<strong style="color: #10b981;">Breakeven achieved!</strong> At ${clients} clients, you've crossed the profitability threshold.`;
+            } else if (clients >= 10) {
+                insight = `<strong style="color: #F5C518;">Getting close!</strong> At ${clients} clients, you're ${breakeven - clients} clients away from breakeven. Monthly loss: $${Math.abs(monthlyLoss).toLocaleString()}.`;
+            } else if (clients >= 5) {
+                insight = `<strong style="color: var(--text-primary);">Building momentum.</strong> At ${clients} clients with ${marginSlider.value}% margins, you'll lose ~$${Math.abs(monthlyLoss).toLocaleString()}/month. Need ${breakeven} clients to break even.`;
+            } else {
+                insight = `<strong style="color: #ef4444;">Early stage.</strong> At ${clients} clients, monthly losses are $${Math.abs(monthlyLoss).toLocaleString()}. Focus on client acquisition—you need ${breakeven} clients for breakeven.`;
+            }
+            document.getElementById('scenarioInsight').innerHTML = `<p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">${insight}</p>`;
+        }
+
+        function calculateClientRamp(targetClients) {
+            // Jan=1, Feb=2 (new client), then ramp to target
+            // Spread additional clients across Mar, May, Aug, Oct pattern
+            const ramp = [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+            const remaining = targetClients - 2;
+            
+            if (remaining >= 1) ramp[4] = 3; // May
+            if (remaining >= 1) { ramp[5] = 3; ramp[6] = 3; }
+            if (remaining >= 2) { ramp[7] = 4; ramp[8] = 4; } // Aug
+            if (remaining >= 3) { ramp[9] = Math.min(targetClients, 5); ramp[10] = Math.min(targetClients, 5); ramp[11] = Math.min(targetClients, 5); } // Oct+
+            
+            // For targets > 5, spread more evenly
+            if (targetClients > 5) {
+                const extra = targetClients - 5;
+                const perMonth = extra / 7; // spread over May-Dec
+                for (let i = 4; i < 12; i++) {
+                    ramp[i] = Math.min(targetClients, Math.round(3 + ((i - 4) * perMonth) + (i >= 7 ? 1 : 0) + (i >= 9 ? 1 : 0)));
+                }
+                ramp[11] = targetClients;
+                ramp[10] = targetClients;
+                ramp[9] = Math.round(targetClients * 0.9);
+            }
+            
+            return ramp;
+        }
+
+        function resetScenario() {
+            clientsSlider.value = 5;
+            revenueSlider.value = 1800;
+            marginSlider.value = 35;
+            opexSlider.value = 15000;
+            updateScenario();
+        }
+
+        // Add event listeners
+        clientsSlider.addEventListener('input', updateScenario);
+        revenueSlider.addEventListener('input', updateScenario);
+        marginSlider.addEventListener('input', updateScenario);
+        opexSlider.addEventListener('input', updateScenario);
+
+        // Initialize scenario AFTER chart is ready
+        setTimeout(updateScenario, 100);
+    </script>
+</body>
+</html>
